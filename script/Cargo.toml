@@ -1,0 +1,35 @@
+[workspace]
+[package]
+version = "0.1.0"
+name = "keyspace-script"
+edition = "2021"
+default-run = "prove_account"
+
+[[bin]]
+name = "prove_account"
+path = "src/bin/ecdsa_account/prove.rs"
+
+[[bin]]
+name = "vkey_account"
+path = "src/bin/ecdsa_account/vkey.rs"
+
+[[bin]]
+name = "prove_recurse"
+path = "src/bin/recurse/prove.rs"
+
+[[bin]]
+name = "vkey_recurse"
+path = "src/bin/recurse/vkey.rs"
+
+[dependencies]
+sp1-sdk = "1.0.1"
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+clap = { version = "4.0", features = ["derive", "env"] }
+tracing = "0.1.40"
+alloy-sol-types = "0.7.2"
+hex = "0.4.3"
+k256 = "0.13.3"
+
+[build-dependencies]
+sp1-helper = "1.0.1"
