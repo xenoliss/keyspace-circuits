@@ -1,17 +1,9 @@
-use k256::sha2::{Digest, Sha256};
 use k256::{ecdsa::SigningKey, elliptic_curve::rand_core::OsRng};
 
+use k_lib::ecdsa_account::{Inputs, KPublicKey, KSignature};
 use sp1_sdk::{ProverClient, SP1Stdin};
 
 pub const ELF: &[u8] = include_bytes!("../../../../ecdsa_account/elf/riscv32im-succinct-zkvm-elf");
-
-/// The ECDSA account program inputs.
-pub struct ECDSAAccoutProgramInputs {
-    inputs_hash: [u8; 32],
-    new_key: [u8; 32],
-    pk: Vec<u8>,
-    sig: Vec<u8>,
-}
 
 fn main() {
     // Setup the logger.
@@ -23,60 +15,38 @@ fn main() {
     // Setup the program.
     let (pk, vk) = client.setup(ELF);
 
-    let args = generate_inputs();
+    for i in 0..1 {
+        let args = random_inputs();
 
-    // Setup the inputs.
-    let mut stdin = SP1Stdin::new();
-    stdin.write::<[u8; 32]>(&args.inputs_hash);
-    stdin.write::<[u8; 32]>(&args.new_key);
-    stdin.write_slice(&args.pk);
-    stdin.write_slice(&args.sig);
+        // Setup the inputs.
+        let mut stdin = SP1Stdin::new();
+        stdin.write(&args);
 
-    // Generate the proof.
-    let proof = client
-        .prove(&pk, stdin)
-        .run()
-        .expect("failed to generate proof");
-    println!("Successfully generated proof!");
+        // Generate the proof.
+        let proof = client
+            .prove(&pk, stdin)
+            .compressed()
+            .run()
+            .expect("failed to generate proof");
+        println!("Successfully generated proof!");
 
-    // Verify the proof.
-    client.verify(&proof, &vk).expect("failed to verify proof");
+        // Verify the proof.
+        client.verify(&proof, &vk).expect("failed to verify proof");
+
+        let file = format!("proofs/account_proof_{i}");
+        proof.save(file).expect("Failed to save proof");
+    }
 }
 
-pub fn generate_inputs() -> ECDSAAccoutProgramInputs {
+fn random_inputs() -> Inputs {
     let signing_key = SigningKey::random(&mut OsRng);
     let verifying_key = signing_key.verifying_key();
 
     let new_key = [42; 32];
-
     let (sig, recid) = signing_key.sign_prehash_recoverable(&new_key).unwrap();
-    let sig_bytes = sig.to_bytes();
 
-    let mut sig = Vec::with_capacity(65);
-    sig.extend_from_slice(&sig_bytes);
-    sig.push(recid.to_byte());
+    let pk = KPublicKey::from(verifying_key);
+    let sig = KSignature::from(&(sig, recid));
 
-    let pk = verifying_key.to_encoded_point(false);
-    let x = pk.x().unwrap();
-    let y = pk.y().unwrap();
-
-    let mut pk = Vec::with_capacity(x.len() + y.len());
-    pk.extend_from_slice(x);
-    pk.extend_from_slice(y);
-
-    let inputs_hash = Sha256::new()
-        .chain_update(new_key)
-        .chain_update(&pk)
-        .finalize()
-        .to_vec()
-        .try_into()
-        .unwrap();
-
-    // Parse the command line arguments.
-    ECDSAAccoutProgramInputs {
-        inputs_hash,
-        new_key,
-        pk,
-        sig,
-    }
+    Inputs::new(new_key, pk, sig)
 }
