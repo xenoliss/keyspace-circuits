@@ -1,6 +1,6 @@
 use sp1_sdk::{HashableKey, ProverClient};
 
-pub const ELF: &[u8] = include_bytes!("../../../../ecdsa_account/elf/riscv32im-succinct-zkvm-elf");
+pub const ELF: &[u8] = include_bytes!("../../../../ecdsa_record/elf/riscv32im-succinct-zkvm-elf");
 
 fn main() {
     // Setup the logger.

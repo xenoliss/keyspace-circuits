@@ -2,7 +2,7 @@
 
 [package]
 version = "0.1.0"
-name = "ecdsa-account-program"
+name = "ecdsa-record-program"
 edition = "2021"
 
 [dependencies]

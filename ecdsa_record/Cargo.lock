@@ -3,17 +3,6 @@
 version = 3
 
 [[package]]
-name = "aggregator-program"
-version = "0.1.0"
-dependencies = [
- "k_lib",
- "serde",
- "sha2",
- "sp1-zkvm",
- "tiny-keccak",
-]
-
-[[package]]
 name = "anyhow"
 version = "1.0.86"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -141,6 +130,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ecdsa-record-program"
+version = "0.1.0"
+dependencies = [
+ "k256",
+ "k_lib",
+ "sha2",
+ "sp1-zkvm",
+]
+
+[[package]]
 name = "either"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -259,10 +258,12 @@ dependencies = [
 name = "k_lib"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "k256",
  "serde",
  "sha2",
  "sp1-zkvm",
+ "tiny-keccak",
 ]
 
 [[package]]
@@ -639,9 +640,9 @@ dependencies = [
 [[package]]
 name = "tiny-keccak"
 version = "2.0.2"
-source = "git+https://github.com/sp1-patches/tiny-keccak?branch=patch-v2.0.2#bf0b28f63510a90c7b6c21ac6ff461c93ecd2331"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c9d3793400a45f954c52e73d068316d76b6f4e36977e3fcebb13a2721e80237"
 dependencies = [
- "cfg-if",
  "crunchy",
 ]
 

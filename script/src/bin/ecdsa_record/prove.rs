@@ -1,9 +1,9 @@
 use k256::{ecdsa::SigningKey, elliptic_curve::rand_core::OsRng};
-
-use k_lib::ecdsa_account::{Inputs, KPublicKey, KSignature};
 use sp1_sdk::{ProverClient, SP1Stdin};
 
-pub const ELF: &[u8] = include_bytes!("../../../../ecdsa_account/elf/riscv32im-succinct-zkvm-elf");
+use k_lib::ecdsa_record::{inputs::Inputs, k_public_key::KPublicKey, k_signature::sign_hash};
+
+pub const ELF: &[u8] = include_bytes!("../../../../ecdsa_record/elf/riscv32im-succinct-zkvm-elf");
 
 fn main() {
     // Setup the logger.
@@ -15,7 +15,7 @@ fn main() {
     // Setup the program.
     let (pk, vk) = client.setup(ELF);
 
-    for i in 0..1 {
+    for i in 0..5 {
         let args = random_inputs();
 
         // Setup the inputs.
@@ -43,10 +43,8 @@ fn random_inputs() -> Inputs {
     let verifying_key = signing_key.verifying_key();
 
     let new_key = [42; 32];
-    let (sig, recid) = signing_key.sign_prehash_recoverable(&new_key).unwrap();
-
+    let sig = sign_hash(&signing_key, &new_key);
     let pk = KPublicKey::from(verifying_key);
-    let sig = KSignature::from(&(sig, recid));
 
     Inputs::new(new_key, pk, sig)
 }

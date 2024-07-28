@@ -2,7 +2,7 @@
 
 [package]
 version = "0.1.0"
-name = "aggregator-program"
+name = "batcher-program"
 edition = "2021"
 
 [dependencies]

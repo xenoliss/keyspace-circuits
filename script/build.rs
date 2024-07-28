@@ -1,6 +1,6 @@
 use sp1_helper::build_program;
 
 fn main() {
-    build_program("../ecdsa_account");
-    build_program("../aggregator");
+    build_program("../batcher");
+    build_program("../ecdsa_record");
 }
