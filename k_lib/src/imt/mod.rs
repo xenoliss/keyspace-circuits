@@ -1,8 +1,8 @@
 mod insert;
-mod node;
 mod update;
 
 pub mod mutate;
+pub mod node;
 
 use tiny_keccak::{Hasher, Keccak};
 
@@ -36,7 +36,7 @@ fn imt_root(size: u64, node: &IMTNode, siblings: &Vec<[u8; 32]>) -> [u8; 32] {
     hash
 }
 
-/// Returns `true` if th given `node` is part of the tree commited to in `root`.
+/// Returns `true` if the given `node` is part of the tree commited to in `root`.
 fn node_exists(root: &[u8; 32], size: u64, node: &IMTNode, siblings: &Vec<[u8; 32]>) -> bool {
     *root == imt_root(size, node, siblings)
 }

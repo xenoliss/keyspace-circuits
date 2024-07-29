@@ -259,7 +259,6 @@ dependencies = [
 name = "k_lib"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "k256",
  "serde",
  "sha2",

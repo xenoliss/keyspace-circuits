@@ -10,7 +10,11 @@ pub struct Inputs {
 }
 
 impl Inputs {
-    pub fn new(txs: Vec<Tx>) -> Self {
-        todo!()
+    pub fn new(old_root: [u8; 32], new_root: [u8; 32], txs: Vec<Tx>) -> Self {
+        Self {
+            old_root,
+            new_root,
+            txs,
+        }
     }
 }

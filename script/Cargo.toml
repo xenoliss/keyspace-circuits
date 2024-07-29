@@ -11,28 +11,16 @@ name = "prove_record"
 path = "src/bin/ecdsa_record/prove.rs"
 
 [[bin]]
-name = "vkey_account"
-path = "src/bin/ecdsa_record/vkey.rs"
-
-[[bin]]
 name = "prove_batcher"
 path = "src/bin/batcher/prove.rs"
 
-[[bin]]
-name = "vkey_batcher"
-path = "src/bin/batcher/vkey.rs"
-
 [dependencies]
 sp1-sdk = "1.0.1"
-serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
-clap = { version = "4.0", features = ["derive", "env"] }
-tracing = "0.1.40"
-alloy-sol-types = "0.7.2"
 hex = "0.4.3"
 k256 = "0.13.3"
-bincode = "1.3.3"
-
 k_lib = { path = "../k_lib" }
+tiny-keccak = { version = "2.0.0", features = ["keccak"] }
+
 
 [build-dependencies]
 sp1-helper = "1.0.1"

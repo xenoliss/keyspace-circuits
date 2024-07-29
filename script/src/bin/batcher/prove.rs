@@ -5,8 +5,9 @@ pub const ELF: &[u8] = include_bytes!("../../../../batcher/elf/riscv32im-succinc
 const ECDSA_RECORD_ELF: &[u8] =
     include_bytes!("../../../../ecdsa_record/elf/riscv32im-succinct-zkvm-elf");
 
+mod imt;
+
 fn main() {
-    todo!();
     // // Setup the logger.
     // sp1_sdk::utils::setup_logger();
 
@@ -19,6 +20,9 @@ fn main() {
 
     // let mut stdin = SP1Stdin::new();
     // let v_key_hash = account_vk.hash_u32();
+
+    let mut tree = imt::IMT::new(2);
+    tree.insert_node([1; 32], [42; 32]);
 
     // let txs = (0..5)
     //     .map(|i| {

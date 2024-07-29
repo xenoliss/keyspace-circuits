@@ -1,4 +1,4 @@
-mod account_proof;
+mod record_proof;
 mod tx;
 
 pub mod inputs;

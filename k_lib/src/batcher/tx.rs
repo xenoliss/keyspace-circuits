@@ -1,29 +1,25 @@
-use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::imt::mutate::IMTMutate;
 
-use super::account_proof::AccountProof;
+use super::record_proof::RecordProof;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Tx {
-    account_proof: AccountProof,
+    record_proof: RecordProof,
     imt_mutate: IMTMutate,
 }
 
 impl Tx {
-    pub fn verify(&self, old_root: &[u8; 32]) -> Result<()> {
-        // Verify account proof.
+    pub fn apply(&self) -> Option<[u8; 32]> {
+        // Verify record proof.
+        self.record_proof.verify();
 
-        // Verify IMT insert.
+        // Verify IMT mutate.
+        let new_root = self.imt_mutate.apply()?;
 
         // Verify tx hash.
 
-        Ok(())
-    }
-
-    pub fn apply(&self) -> [u8; 32] {
-        // Apply IMT insert.
-        todo!()
+        Some(new_root)
     }
 }
