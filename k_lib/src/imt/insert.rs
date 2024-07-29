@@ -9,11 +9,11 @@ pub struct IMTInsert {
     pub old_root: [u8; 32],
     pub old_size: u64,
     pub ln_node: IMTNode,
-    pub ln_siblings: Vec<[u8; 32]>,
+    pub ln_siblings: Vec<Option<[u8; 32]>>,
 
     pub node: IMTNode,
-    pub node_siblings: Vec<[u8; 32]>,
-    pub updated_ln_siblings: Vec<[u8; 32]>,
+    pub node_siblings: Vec<Option<[u8; 32]>>,
+    pub updated_ln_siblings: Vec<Option<[u8; 32]>>,
 }
 
 impl IMTInsert {

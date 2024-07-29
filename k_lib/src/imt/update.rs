@@ -9,7 +9,7 @@ pub struct IMTUpdate {
     pub old_root: [u8; 32],
     pub size: u64,
     pub node: IMTNode,
-    pub node_siblings: Vec<[u8; 32]>,
+    pub node_siblings: Vec<Option<[u8; 32]>>,
     pub new_value_hash: [u8; 32],
 }
 

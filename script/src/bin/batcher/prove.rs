@@ -21,8 +21,11 @@ fn main() {
     // let mut stdin = SP1Stdin::new();
     // let v_key_hash = account_vk.hash_u32();
 
-    let mut tree = imt::IMT::new(2);
-    tree.insert_node([1; 32], [42; 32]);
+    let mut tree = imt::Imt::new(2);
+    let mutate_1 = tree.insert_node([1; 32], [42; 32]);
+    println!("{mutate_1:?}");
+    let mutate_2 = tree.update_node([1; 32], [43; 32]);
+    println!("{mutate_2:?}");
 
     // let txs = (0..5)
     //     .map(|i| {

@@ -9,20 +9,30 @@ use tiny_keccak::{Hasher, Keccak};
 use node::IMTNode;
 
 /// Computes the IMT root.
-fn imt_root(size: u64, node: &IMTNode, siblings: &Vec<[u8; 32]>) -> [u8; 32] {
+fn imt_root(size: u64, node: &IMTNode, siblings: &Vec<Option<[u8; 32]>>) -> [u8; 32] {
     let mut hash = node.hash();
 
     let mut index = node.index;
     for sibling in siblings {
+        let node_hash = Some(hash);
+
         let (left, right) = if index % 2 == 0 {
-            (&hash, sibling)
+            (&node_hash, sibling)
         } else {
-            (sibling, &hash)
+            (sibling, &node_hash)
         };
 
         let mut k = Keccak::v256();
-        k.update(left);
-        k.update(right);
+        match (left, right) {
+            (None, None) => unreachable!(),
+            (None, Some(right)) => k.update(right),
+            (Some(left), None) => k.update(left),
+            (Some(left), Some(right)) => {
+                k.update(left);
+                k.update(right);
+            }
+        };
+
         k.finalize(&mut hash);
 
         index /= 2;
@@ -37,6 +47,11 @@ fn imt_root(size: u64, node: &IMTNode, siblings: &Vec<[u8; 32]>) -> [u8; 32] {
 }
 
 /// Returns `true` if the given `node` is part of the tree commited to in `root`.
-fn node_exists(root: &[u8; 32], size: u64, node: &IMTNode, siblings: &Vec<[u8; 32]>) -> bool {
+fn node_exists(
+    root: &[u8; 32],
+    size: u64,
+    node: &IMTNode,
+    siblings: &Vec<Option<[u8; 32]>>,
+) -> bool {
     *root == imt_root(size, node, siblings)
 }

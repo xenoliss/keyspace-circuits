@@ -6,6 +6,7 @@ use super::tx::Tx;
 pub struct Inputs {
     pub old_root: [u8; 32],
     pub new_root: [u8; 32],
+
     pub txs: Vec<Tx>,
 }
 

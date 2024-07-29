@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use tiny_keccak::{Hasher, Keccak};
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, Copy)]
 pub struct IMTNode {
     pub index: u64,
     pub key: [u8; 32],
