@@ -23,7 +23,7 @@ impl IMTNode {
         h
     }
 
-    pub fn is_ln_of(&self, node: &IMTNode) -> bool {
-        self.key < node.key && ((self.next_key > node.key) || (self.next_key == [0; 32]))
+    pub fn is_ln_of(&self, node_key: &[u8; 32]) -> bool {
+        self.key < *node_key && ((self.next_key > *node_key) || (self.next_key == [0; 32]))
     }
 }

@@ -19,52 +19,15 @@ fn main() {
     let (batcher_pk, _) = client.setup(ELF);
     let (_, record_vk) = client.setup(ECDSA_RECORD_ELF);
 
-    let v_key_hash = record_vk.hash_u32();
-
-    let mut tree = imt::Imt::new(2);
+    let mut tree = imt::Imt::new(32);
     let old_root = tree.root;
 
-    let imt_mutates = vec![
-        {
-            let mutate = tree.insert_node([1; 32], [1; 32]);
-            mutate.apply().expect("failed to apply mutate 1");
-
-            mutate
-        },
-        {
-            let mutate = tree.insert_node([2; 32], [2; 32]);
-            mutate.apply().expect("failed to apply mutate 2");
-
-            mutate
-        },
-        {
-            let mutate = tree.update_node([2; 32], [42; 32]);
-            mutate.apply().expect("failed to apply mutate 3");
-
-            mutate
-        },
-        {
-            let mutate = tree.insert_node([3; 32], [3; 32]);
-            mutate.apply().expect("failed to apply mutate 4");
-
-            mutate
-        },
-        {
-            let mutate = tree.update_node([2; 32], [43; 32]);
-            mutate.apply().expect("failed to apply mutate 5");
-
-            mutate
-        },
-    ];
-
-    let new_root = tree.root;
-
+    let v_key_hash = record_vk.hash_u32();
     let mut stdin = SP1Stdin::new();
 
-    let txs = imt_mutates
-        .into_iter()
-        .enumerate()
-        .map(|(i, mutate)| {
+    let txs = (0..5)
+        .map(|i| {
+            // Read the Record Proof from file storage.
             let file = format!("proofs/record_proof_{i}");
             let record_proof = SP1ProofWithPublicValues::load(file)
                 .expect("failed to load record proof from file");
@@ -74,17 +37,26 @@ fn main() {
             };
             stdin.write_proof(proof, record_vk.vk.clone());
 
-            let pub_inputs = record_proof.public_values.to_vec();
+            // Build the Record Proof input.
+            let record_proof = RecordProof {
+                v_key: v_key_hash,
+                pub_inputs: record_proof.public_values.to_vec(),
+            };
 
+            let keyspace_id = record_proof.keyspace_key();
+
+            // Mutate the tree for the re-computed Keyspace id.
+            let imt_mutate = tree.insert_node(keyspace_id, [3; 32]);
+
+            // Build a transaction to send.
             Tx {
-                record_proof: RecordProof {
-                    v_key: v_key_hash,
-                    pub_inputs,
-                },
-                imt_mutate: mutate,
+                record_proof,
+                imt_mutate,
             }
         })
         .collect::<Vec<_>>();
+
+    let new_root = tree.root;
 
     let inputs = Inputs {
         old_root,
@@ -96,7 +68,7 @@ fn main() {
 
     client
         .prove(&batcher_pk, stdin)
-        .plonk()
+        .compressed()
         .run()
         .expect("batcher proving failed");
 }

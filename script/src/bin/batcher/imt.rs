@@ -170,13 +170,7 @@ impl Imt {
         let ln = self
             .nodes
             .values()
-            .reduce(|ln, node| {
-                if node.key < *node_key && node.key > ln.key {
-                    return node;
-                }
-
-                ln
-            })
+            .find(|node| node.is_ln_of(node_key))
             .expect("failed to found ln node");
 
         *ln

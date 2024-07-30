@@ -1,7 +1,8 @@
 use k256::{ecdsa::SigningKey, elliptic_curve::rand_core::OsRng};
+use rand::Rng;
 use sp1_sdk::{ProverClient, SP1Stdin};
 
-use k_lib::ecdsa_record::{inputs::Inputs, k_public_key::KPublicKey, k_signature::sign_hash};
+use k_lib::ecdsa_record::{inputs::Inputs, k_signature::sign_hash};
 
 pub const ELF: &[u8] = include_bytes!("../../../../ecdsa_record/elf/riscv32im-succinct-zkvm-elf");
 
@@ -42,9 +43,13 @@ fn random_inputs() -> Inputs {
     let signing_key = SigningKey::random(&mut OsRng);
     let verifying_key = signing_key.verifying_key();
 
-    let new_key = [42; 32];
+    let mut rng = rand::thread_rng();
+    let new_key = rng.gen();
     let sig = sign_hash(&signing_key, &new_key);
-    let pk = KPublicKey::from(verifying_key);
 
-    Inputs::new(new_key, pk, sig)
+    Inputs {
+        current_data: verifying_key.into(),
+        new_key,
+        sig,
+    }
 }

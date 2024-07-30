@@ -31,10 +31,8 @@ name = "batcher-program"
 version = "0.1.0"
 dependencies = [
  "k_lib",
- "serde",
  "sha2",
  "sp1-zkvm",
- "tiny-keccak",
 ]
 
 [[package]]
@@ -262,7 +260,6 @@ dependencies = [
  "k256",
  "serde",
  "sha2",
- "sp1-zkvm",
  "tiny-keccak",
 ]
 

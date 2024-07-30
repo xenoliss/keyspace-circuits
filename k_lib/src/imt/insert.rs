@@ -21,11 +21,12 @@ impl IMTInsert {
     ///
     /// Before performong the insertion, the state is checked to make sure it is coherent.
     /// In case of any inconsistency, `None` is returned.
-    pub fn apply(&self) -> Option<[u8; 32]> {
+    pub fn apply(&self, old_root: [u8; 32]) -> [u8; 32] {
+        // Make sure the IMTMutate old_root matches the expected old_root.
+        assert_eq!(old_root, self.old_root, "IMTMutate.old_root is stale");
+
         // Verify that the provided ln node is valid.
-        if !self.is_valid_ln() {
-            return None;
-        }
+        assert!(self.is_valid_ln(), "IMTMutate.ln_node is invalid");
 
         // Compute the updated root from the node and the updated ln node.
         let new_size = self.old_size + 1;
@@ -39,12 +40,17 @@ impl IMTInsert {
         let root_from_updated_ln = imt_root(new_size, &updated_ln, &self.updated_ln_siblings);
 
         // Make sure both roots are equal.
-        (root_from_node == root_from_updated_ln).then_some(root_from_node)
+        assert_eq!(
+            root_from_node, root_from_updated_ln,
+            "IMTMutate.updated_ln_siblings is invalid"
+        );
+
+        root_from_node
     }
 
     /// Returns `true` if `self.ln_node` is a valid ln node for `self.node`.
     fn is_valid_ln(&self) -> bool {
-        self.ln_node.is_ln_of(&self.node)
+        self.ln_node.is_ln_of(&self.node.key)
             && node_exists(
                 &self.old_root,
                 self.old_size,

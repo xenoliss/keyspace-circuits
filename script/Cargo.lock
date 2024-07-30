@@ -2434,7 +2434,6 @@ dependencies = [
  "k256",
  "serde",
  "sha2",
- "sp1-zkvm",
  "tiny-keccak",
 ]
 
@@ -2465,6 +2464,7 @@ dependencies = [
  "hex",
  "k256",
  "k_lib",
+ "rand",
  "sp1-helper",
  "sp1-sdk",
  "tiny-keccak",
@@ -4578,18 +4578,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-lib"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01c4a9c8d029e57349b2b124595b2dc7a70d3dd8431d0e63348a2a271a894b8e"
-dependencies = [
- "anyhow",
- "bincode",
- "cfg-if",
- "serde",
-]
-
-[[package]]
 name = "sp1-primitives"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4835,27 +4823,6 @@ dependencies = [
  "tracing",
  "twirp-rs",
  "vergen",
-]
-
-[[package]]
-name = "sp1-zkvm"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0708c2369deb682e57bfe33bb5a405188d825511b31e22af5722e1ace79c1840"
-dependencies = [
- "bincode",
- "cfg-if",
- "getrandom",
- "lazy_static",
- "libm",
- "once_cell",
- "p3-baby-bear",
- "p3-field",
- "rand",
- "serde",
- "sha2",
- "sp1-lib",
- "sp1-primitives",
 ]
 
 [[package]]

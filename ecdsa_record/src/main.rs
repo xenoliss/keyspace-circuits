@@ -7,5 +7,7 @@ pub fn main() {
     let inputs = sp1_zkvm::io::read::<Inputs>();
     Program::run(&inputs);
 
-    sp1_zkvm::io::commit(inputs.to_commit());
+    // Commit to the public inputs.
+    sp1_zkvm::io::commit(&inputs.current_data);
+    sp1_zkvm::io::commit(&inputs.new_key);
 }

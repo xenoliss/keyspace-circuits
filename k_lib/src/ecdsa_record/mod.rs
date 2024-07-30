@@ -1,4 +1,4 @@
-pub mod k_public_key;
+pub mod current_data;
 pub mod k_signature;
 
 pub mod inputs;

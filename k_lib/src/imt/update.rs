@@ -18,11 +18,15 @@ impl IMTUpdate {
     ///
     /// Before performong the update, the state is checked to make sure it is coherent.
     /// In case of any inconsistency, `None` is returned.
-    pub fn apply(&self) -> Option<[u8; 32]> {
+    pub fn apply(&self, old_root: [u8; 32]) -> [u8; 32] {
+        // Make sure the IMTMutate old_root matches the expected old_root.
+        assert_eq!(old_root, self.old_root, "IMTMutate.old_root is stale");
+
         // Verify that the node to update is already in the IMT.
-        if node_exists(&self.old_root, self.size, &self.node, &self.node_siblings) {
-            return None;
-        }
+        assert!(
+            node_exists(&self.old_root, self.size, &self.node, &self.node_siblings),
+            "IMTMutate.node is not in the IMT"
+        );
 
         // Compute the new root from the updated node.
         let updated_node = IMTNode {
@@ -30,8 +34,6 @@ impl IMTUpdate {
             ..self.node
         };
 
-        let root_from_updated_node = imt_root(self.size, &updated_node, &self.node_siblings);
-
-        Some(root_from_updated_node)
+        imt_root(self.size, &updated_node, &self.node_siblings)
     }
 }

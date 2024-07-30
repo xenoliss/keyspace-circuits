@@ -52,10 +52,10 @@ impl IMTMutate {
     ///
     /// Before performong the mutation, the state is checked to make sure it is coherent.
     /// In case of any inconsistency, `None` is returned.
-    pub fn apply(&self) -> Option<[u8; 32]> {
+    pub fn apply(&self, old_root: [u8; 32]) -> [u8; 32] {
         match &self {
-            IMTMutate::Insert(insert) => insert.apply(),
-            IMTMutate::Update(update) => update.apply(),
+            IMTMutate::Insert(insert) => insert.apply(old_root),
+            IMTMutate::Update(update) => update.apply(old_root),
         }
     }
 }

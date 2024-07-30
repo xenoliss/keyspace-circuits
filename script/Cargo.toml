@@ -21,6 +21,7 @@ k256 = "0.13.3"
 k_lib = { path = "../k_lib" }
 tiny-keccak = { version = "2.0.0", features = ["keccak"] }
 bincode = "1.3.3"
+rand = "0.8.5"
 
 
 [build-dependencies]

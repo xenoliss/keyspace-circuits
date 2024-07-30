@@ -4,8 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sp1-zkvm = { version = "1.0.1", features = ["verify"] }
+serde = { version = "1.0.204", features = ["derive"] }
 k256 = "0.13.3"
-serde = { version = "1.0", default-features = false, features = ["derive"] }
 sha2 = "0.10.8"
 tiny-keccak = { version = "2.0.0", features = ["keccak"] }

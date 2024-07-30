@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use tiny_keccak::{Hasher, Keccak};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RecordProof {
@@ -9,14 +10,31 @@ pub struct RecordProof {
 }
 
 impl RecordProof {
-    #[cfg(not(target_os = "zkvm"))]
-    pub fn verify(&self) {}
+    pub fn keyspace_key(&self) -> [u8; 32] {
+        let mut k = Keccak::v256();
 
-    #[cfg(target_os = "zkvm")]
-    pub fn verify(&self) {
-        use sha2::{Digest, Sha256};
+        let mut key = [0u8; 32];
+        k.update(&words_to_bytes_le(&self.v_key));
+        k.update(&self.current_data_hash());
+        k.finalize(&mut key);
 
-        let public_values_digest = Sha256::digest(&self.pub_inputs);
-        sp1_zkvm::lib::verify::verify_sp1_proof(&self.v_key, &public_values_digest.into());
+        key
     }
+
+    fn current_data_hash(&self) -> [u8; 32] {
+        let mut k = Keccak::v256();
+
+        let mut key = [0u8; 32];
+        k.update(&self.pub_inputs[..256]);
+        k.finalize(&mut key);
+
+        key
+    }
+}
+
+fn words_to_bytes_le(words: &[u32]) -> Vec<u8> {
+    words
+        .iter()
+        .flat_map(|word| word.to_le_bytes().to_vec())
+        .collect::<Vec<_>>()
 }
