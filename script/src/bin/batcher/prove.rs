@@ -33,19 +33,25 @@ fn main() {
         },
         {
             let mutate = tree.insert_node([2; 32], [2; 32]);
-            mutate.apply().expect("failed to apply mutate 1");
+            mutate.apply().expect("failed to apply mutate 2");
 
             mutate
         },
         {
             let mutate = tree.update_node([2; 32], [42; 32]);
-            mutate.apply().expect("failed to apply mutate 1");
+            mutate.apply().expect("failed to apply mutate 3");
 
             mutate
         },
         {
             let mutate = tree.insert_node([3; 32], [3; 32]);
-            mutate.apply().expect("failed to apply mutate 1");
+            mutate.apply().expect("failed to apply mutate 4");
+
+            mutate
+        },
+        {
+            let mutate = tree.update_node([2; 32], [43; 32]);
+            mutate.apply().expect("failed to apply mutate 5");
 
             mutate
         },
@@ -69,13 +75,12 @@ fn main() {
             stdin.write_proof(proof, record_vk.vk.clone());
 
             let pub_inputs = record_proof.public_values.to_vec();
-            let record_proof = RecordProof {
-                v_key: v_key_hash,
-                pub_inputs,
-            };
 
             Tx {
-                record_proof,
+                record_proof: RecordProof {
+                    v_key: v_key_hash,
+                    pub_inputs,
+                },
                 imt_mutate: mutate,
             }
         })
@@ -91,6 +96,7 @@ fn main() {
 
     client
         .prove(&batcher_pk, stdin)
+        .plonk()
         .run()
         .expect("batcher proving failed");
 }

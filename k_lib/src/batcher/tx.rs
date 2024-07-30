@@ -16,6 +16,8 @@ impl Tx {
         self.record_proof.verify();
 
         // Verify IMT mutate.
+        // TODO: The IMT mutation should only be applied if the provided
+        // record proof is up to date with the curremt IMT state.
         let new_root = self.imt_mutate.apply()?;
 
         // TODO: Verify tx hash.
