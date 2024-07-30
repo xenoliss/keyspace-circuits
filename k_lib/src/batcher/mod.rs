@@ -1,5 +1,5 @@
-mod record_proof;
-mod tx;
+pub mod record_proof;
+pub mod tx;
 
 pub mod inputs;
 pub mod program;

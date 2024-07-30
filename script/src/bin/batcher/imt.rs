@@ -5,7 +5,7 @@ use k_lib::imt::{mutate::IMTMutate, node::IMTNode};
 
 #[derive(Debug)]
 pub struct Imt {
-    root: [u8; 32],
+    pub root: [u8; 32],
     depth: u8,
     size: u64,
     nodes: HashMap<[u8; 32], IMTNode>,

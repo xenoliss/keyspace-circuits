@@ -33,8 +33,8 @@ fn main() {
         // Verify the proof.
         client.verify(&proof, &vk).expect("failed to verify proof");
 
-        let file = format!("proofs/account_proof_{i}");
-        proof.save(file).expect("Failed to save proof");
+        let file = format!("proofs/record_proof_{i}");
+        proof.save(file).expect("failed to save proof");
     }
 }
 

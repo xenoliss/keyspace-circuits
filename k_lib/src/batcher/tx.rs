@@ -6,8 +6,8 @@ use super::record_proof::RecordProof;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Tx {
-    record_proof: RecordProof,
-    imt_mutate: IMTMutate,
+    pub record_proof: RecordProof,
+    pub imt_mutate: IMTMutate,
 }
 
 impl Tx {
@@ -18,7 +18,7 @@ impl Tx {
         // Verify IMT mutate.
         let new_root = self.imt_mutate.apply()?;
 
-        // Verify tx hash.
+        // TODO: Verify tx hash.
 
         Some(new_root)
     }

@@ -1,3 +1,4 @@
+use k_lib::batcher::{inputs::Inputs, record_proof::RecordProof, tx::Tx};
 use sp1_sdk::{HashableKey, ProverClient, SP1Proof, SP1ProofWithPublicValues, SP1Stdin};
 
 pub const ELF: &[u8] = include_bytes!("../../../../batcher/elf/riscv32im-succinct-zkvm-elf");
@@ -8,72 +9,88 @@ const ECDSA_RECORD_ELF: &[u8] =
 mod imt;
 
 fn main() {
-    // // Setup the logger.
-    // sp1_sdk::utils::setup_logger();
+    // Setup the logger.
+    sp1_sdk::utils::setup_logger();
 
-    // // Initialize the proving client.
-    // let client = ProverClient::new();
+    // Initialize the proving client.
+    let client = ProverClient::new();
 
-    // // Setup the proving and verifying keys.
-    // let (batcher_pk, _) = client.setup(ELF);
-    // let (_, account_vk) = client.setup(ECDSA_RECORD_ELF);
+    // Setup the proving and verifying keys.
+    let (batcher_pk, _) = client.setup(ELF);
+    let (_, record_vk) = client.setup(ECDSA_RECORD_ELF);
 
-    // let mut stdin = SP1Stdin::new();
-    // let v_key_hash = account_vk.hash_u32();
+    let v_key_hash = record_vk.hash_u32();
 
     let mut tree = imt::Imt::new(2);
+    let old_root = tree.root;
 
-    let mutate_1 = tree.insert_node([1; 32], [42; 32]);
-    if mutate_1.apply().is_none() {
-        panic!("Mutate 1 failed");
-    }
+    let imt_mutates = vec![
+        {
+            let mutate = tree.insert_node([1; 32], [1; 32]);
+            mutate.apply().expect("failed to apply mutate 1");
 
-    let mutate_2 = tree.update_node([1; 32], [43; 32]);
-    if mutate_2.apply().is_none() {
-        panic!("Mutate 2 failed");
-    }
+            mutate
+        },
+        {
+            let mutate = tree.insert_node([2; 32], [2; 32]);
+            mutate.apply().expect("failed to apply mutate 1");
 
-    let mutate_3 = tree.update_node([1; 32], [44; 32]);
-    if mutate_3.apply().is_none() {
-        panic!("Mutate 3 failed");
-    }
+            mutate
+        },
+        {
+            let mutate = tree.update_node([2; 32], [42; 32]);
+            mutate.apply().expect("failed to apply mutate 1");
 
-    let mutate_4 = tree.insert_node([2; 32], [0xde; 32]);
-    if mutate_4.apply().is_none() {
-        panic!("Mutate 4 failed");
-    }
+            mutate
+        },
+        {
+            let mutate = tree.insert_node([3; 32], [3; 32]);
+            mutate.apply().expect("failed to apply mutate 1");
 
-    let mutate_5 = tree.insert_node([3; 32], [0xad; 32]);
-    if mutate_5.apply().is_none() {
-        panic!("Mutate 5 failed");
-    }
+            mutate
+        },
+    ];
 
-    // let txs = (0..5)
-    //     .map(|i| {
-    //         let file = format!("proofs/account_proof_{i}");
-    //         let account_proof = SP1ProofWithPublicValues::load(file)
-    //             .expect("failed to load account proof from file");
+    let new_root = tree.root;
 
-    //         // Write the proof.
-    //         //
-    //         // Note: this data will not actually be read by the batcher program, instead it will be
-    //         // witnessed by the prover during the recursive batcher process inside SP1 itself.
-    //         let SP1Proof::Compressed(proof) = account_proof.proof else {
-    //             panic!()
-    //         };
-    //         stdin.write_proof(proof, account_vk.vk.clone());
+    let mut stdin = SP1Stdin::new();
 
-    //         let account_pub_hash = account_proof.public_values.to_vec();
-    //         Tx::from((v_key_hash, account_pub_hash))
-    //     })
-    //     .collect::<Vec<_>>();
+    let txs = imt_mutates
+        .into_iter()
+        .enumerate()
+        .map(|(i, mutate)| {
+            let file = format!("proofs/record_proof_{i}");
+            let record_proof = SP1ProofWithPublicValues::load(file)
+                .expect("failed to load record proof from file");
 
-    // stdin.write(&txs);
+            let SP1Proof::Compressed(proof) = record_proof.proof else {
+                panic!()
+            };
+            stdin.write_proof(proof, record_vk.vk.clone());
 
-    // // Generate the plonk bn254 proof.
-    // client
-    //     .prove(&batcher_pk, stdin)
-    //     .plonk()
-    //     .run()
-    //     .expect("batcher proving failed");
+            let pub_inputs = record_proof.public_values.to_vec();
+            let record_proof = RecordProof {
+                v_key: v_key_hash,
+                pub_inputs,
+            };
+
+            Tx {
+                record_proof,
+                imt_mutate: mutate,
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let inputs = Inputs {
+        old_root,
+        new_root,
+        txs,
+    };
+
+    stdin.write(&inputs);
+
+    client
+        .prove(&batcher_pk, stdin)
+        .run()
+        .expect("batcher proving failed");
 }

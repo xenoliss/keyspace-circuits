@@ -2461,6 +2461,7 @@ dependencies = [
 name = "keyspace-script"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "hex",
  "k256",
  "k_lib",
