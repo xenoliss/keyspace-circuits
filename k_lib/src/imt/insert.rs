@@ -31,7 +31,7 @@ impl IMTInsert {
         let new_size = self.old_size + 1;
 
         let updated_ln = IMTNode {
-            next_key: self.ln_node.key,
+            next_key: self.node.key,
             ..self.ln_node
         };
 

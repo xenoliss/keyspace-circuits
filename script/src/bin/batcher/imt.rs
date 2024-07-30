@@ -58,19 +58,21 @@ impl Imt {
             .get_mut(&ln_node.key)
             .expect("failed to get node")
             .next_key = key;
-        let updated_ln_siblings = self.refresh_tree(&ln_node.key);
+        self.refresh_tree(&ln_node.key);
 
         // Create the new node.
         let node = IMTNode {
             index: node_index,
             key,
             value_hash,
-            next_key: ln_node.key,
+            next_key: ln_node.next_key,
         };
 
         // Insert the new node and refresh the tree.
         self.nodes.insert(node.key, node);
         let node_siblings = self.refresh_tree(&key);
+
+        let updated_ln_siblings = self.siblings(&ln_node.key);
 
         // Return the IMTMutate insertion to use for proving.
         IMTMutate::insert(
@@ -150,7 +152,16 @@ impl Imt {
         }
 
         // Refresh the root hash.
-        self.root = hash;
+        self.root = {
+            let mut root_hash = [0; 32];
+
+            let mut k = Keccak::v256();
+            k.update(&hash);
+            k.update(&self.size.to_be_bytes());
+            k.finalize(&mut root_hash);
+
+            root_hash
+        };
 
         siblings
     }

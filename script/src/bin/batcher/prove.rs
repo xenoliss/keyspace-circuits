@@ -22,10 +22,31 @@ fn main() {
     // let v_key_hash = account_vk.hash_u32();
 
     let mut tree = imt::Imt::new(2);
+
     let mutate_1 = tree.insert_node([1; 32], [42; 32]);
-    println!("{mutate_1:?}");
+    if mutate_1.apply().is_none() {
+        panic!("Mutate 1 failed");
+    }
+
     let mutate_2 = tree.update_node([1; 32], [43; 32]);
-    println!("{mutate_2:?}");
+    if mutate_2.apply().is_none() {
+        panic!("Mutate 2 failed");
+    }
+
+    let mutate_3 = tree.update_node([1; 32], [44; 32]);
+    if mutate_3.apply().is_none() {
+        panic!("Mutate 3 failed");
+    }
+
+    let mutate_4 = tree.insert_node([2; 32], [0xde; 32]);
+    if mutate_4.apply().is_none() {
+        panic!("Mutate 4 failed");
+    }
+
+    let mutate_5 = tree.insert_node([3; 32], [0xad; 32]);
+    if mutate_5.apply().is_none() {
+        panic!("Mutate 5 failed");
+    }
 
     // let txs = (0..5)
     //     .map(|i| {
