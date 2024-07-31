@@ -249,6 +249,7 @@ name = "k_lib"
 version = "0.1.0"
 dependencies = [
  "k256",
+ "num-bigint",
  "serde",
  "sha2",
  "sp1-zkvm",
