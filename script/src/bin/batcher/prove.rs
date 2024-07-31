@@ -1,4 +1,4 @@
-use k_lib::batcher::{inputs::Inputs, record_proof::RecordProof, tx::Tx};
+use k_lib::batcher::{inputs::Inputs, program::Program, record_proof::RecordProof, tx::Tx};
 use sp1_sdk::{HashableKey, ProverClient, SP1Proof, SP1ProofWithPublicValues, SP1Stdin};
 
 pub const ELF: &[u8] = include_bytes!("../../../../batcher/elf/riscv32im-succinct-zkvm-elf");
@@ -25,7 +25,7 @@ fn main() {
     let v_key_hash = record_vk.hash_u32();
     let mut stdin = SP1Stdin::new();
 
-    let txs = (0..5)
+    let txs = (0..10)
         .map(|i| {
             // Read the Record Proof from file storage.
             let file = format!("proofs/record_proof_{i}");
@@ -64,11 +64,14 @@ fn main() {
         txs,
     };
 
-    stdin.write(&inputs);
+    // Make sure the inputs is valid by fake running our the batcher program.
+    Program::run(&inputs);
 
+    // Generate the proof for it.
+    stdin.write(&inputs);
     client
         .prove(&batcher_pk, stdin)
-        .compressed()
+        .plonk()
         .run()
         .expect("batcher proving failed");
 }

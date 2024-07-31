@@ -16,7 +16,7 @@ fn main() {
     // Setup the program.
     let (pk, vk) = client.setup(ELF);
 
-    for i in 0..5 {
+    for i in 0..10 {
         let args = random_inputs();
 
         // Setup the inputs.
