@@ -33,13 +33,10 @@ impl Imt {
     pub fn insert_node(&mut self, key: [u8; 32], value_hash: [u8; 32]) -> IMTMutate {
         // Do not overflow the tree.
         let max_size = (1 << self.depth) - 1;
-        if self.size == max_size {
-            panic!("tree overflow")
-        }
+        assert!(self.size < max_size, "tree overflow");
 
-        if self.nodes.contains_key(&key) {
-            panic!("key conflict")
-        }
+        // Ensure key does not already exist in the tree.
+        assert!(!self.nodes.contains_key(&key), "key conflict");
 
         let old_root = self.root;
         let old_size = self.size;

@@ -32,9 +32,11 @@ fn main() {
             let record_proof = SP1ProofWithPublicValues::load(file)
                 .expect("failed to load record proof from file");
 
-            let SP1Proof::Compressed(proof) = record_proof.proof else {
-                panic!()
+            let proof = match record_proof.proof {
+                SP1Proof::Compressed(proof) => proof,
+                _ => panic!("record proof should be compressed to be recursively verified"),
             };
+
             stdin.write_proof(proof, record_vk.vk.clone());
 
             // Build the Record Proof input.
