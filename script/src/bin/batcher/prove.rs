@@ -1,4 +1,7 @@
-use k_lib::batcher::{inputs::Inputs, program::Program, record_proof::RecordProof, tx::Tx};
+use k_lib::{
+    batcher::{inputs::Inputs, program::Program, record_proof::RecordProof, tx::Tx},
+    keyspace_key,
+};
 use sp1_sdk::{HashableKey, ProverClient, SP1Proof, SP1ProofWithPublicValues, SP1Stdin};
 
 pub const ELF: &[u8] = include_bytes!("../../../../batcher/elf/riscv32im-succinct-zkvm-elf");
@@ -45,7 +48,7 @@ fn main() {
                 pub_inputs: record_proof.public_values.to_vec(),
             };
 
-            let keyspace_id = record_proof.keyspace_key();
+            let keyspace_id = keyspace_key(&record_proof.v_key, &record_proof.current_data());
 
             // Mutate the tree for the re-computed Keyspace id.
             let imt_mutate = tree.insert_node(keyspace_id, [3; 32]);

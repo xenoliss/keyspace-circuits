@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::{batcher::record_proof::RecordProof, keyspace_key};
+
 use super::{insert::IMTInsert, node::IMTNode, update::IMTUpdate};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -9,6 +11,7 @@ pub enum IMTMutate {
 }
 
 impl IMTMutate {
+    /// Create a new IMTMutate for insertion.
     pub fn insert(
         old_root: [u8; 32],
         old_size: u64,
@@ -30,6 +33,7 @@ impl IMTMutate {
         })
     }
 
+    /// Create a new IMTMutate for udpate.
     pub fn update(
         old_root: [u8; 32],
         size: u64,
@@ -44,6 +48,41 @@ impl IMTMutate {
             node_siblings,
             new_value_hash,
         })
+    }
+
+    /// Returns `true` if the IMTMutate is bound to the given `record_proof`.
+    ///
+    /// An IMTMutate is bound to a RecordProof if its relevant KeySpace Key matches with the KeySpace
+    /// key recomputed from the RecordProof.
+    ///
+    /// For IMT insertion the relevant KeySpace Key is the node's key itself (a.k.a the Keyspace
+    /// id). For IMT update the relevant KeySpace Key is the node's value hash (a.k.a the New Key).
+    pub fn is_bound_to_proof(&self, record_proof: &RecordProof) -> bool {
+        // keyspace_id = hash(hash(original_vk), hash(original_data))
+        // new_key = hash(hash(new_vk), hash(new_data))
+        //
+        // Insertion:
+        //   node_key = imt_mutate.node.key
+        //
+        //   v_key = record_proof.v_key
+        //   current_data = record_proof.pub_inputs
+        //   hash(hash(v_key), hash(current_data)) == node_key
+        //
+        // Update:
+        //   value_hash = imt_mutate.node.value_hash
+        //
+        //   v_key = record_proof.v_key
+        //   current_data = record_proof.pub_inputs
+        //   hash(hash(v_key), hash(current_data)) == value_hash
+
+        let imt_keyspace_key = match self {
+            IMTMutate::Insert(insert) => insert.node.key,
+            IMTMutate::Update(update) => update.node.value_hash,
+        };
+
+        // Check if the IMTUpdate relevant KeySpace key matches with the KeySpace key reocmputed
+        // from the RecordProof.
+        imt_keyspace_key == keyspace_key(&record_proof.v_key, &record_proof.current_data())
     }
 }
 
