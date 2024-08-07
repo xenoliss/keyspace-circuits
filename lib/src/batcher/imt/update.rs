@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::imt::node::IMTNode;
-
-use super::{imt_root, node_exists};
+use super::{imt_root, node::IMTNode, node_exists};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct IMTUpdate {
@@ -17,7 +15,6 @@ impl IMTUpdate {
     /// Apply the IMT update and return the new updated root.
     ///
     /// Before performong the update, the state is checked to make sure it is coherent.
-    /// In case of any inconsistency, `None` is returned.
     pub fn apply(&self, old_root: [u8; 32]) -> [u8; 32] {
         // Make sure the IMTMutate old_root matches the expected old_root.
         assert_eq!(old_root, self.old_root, "IMTMutate.old_root is stale");

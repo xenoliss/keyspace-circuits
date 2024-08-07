@@ -1,8 +1,6 @@
-use k_lib::{
-    batcher::{inputs::Inputs, program::Program, record_proof::RecordProof, tx::Tx},
-    keyspace_key,
-};
 use sp1_sdk::{HashableKey, ProverClient, SP1Proof, SP1ProofWithPublicValues, SP1Stdin};
+
+use lib::batcher::{inputs::Inputs, tx::Tx};
 
 pub const ELF: &[u8] = include_bytes!("../../../../batcher/elf/riscv32im-succinct-zkvm-elf");
 
@@ -25,9 +23,10 @@ fn main() {
     let mut tree = imt::Imt::new(32);
     let old_root = tree.root;
 
-    let v_key_hash = record_vk.hash_u32();
+    let v_key_hash = record_vk.hash_bytes();
     let mut stdin = SP1Stdin::new();
 
+    let mut tx_hash = [0; 32];
     let txs = (0..10)
         .map(|i| {
             // Read the Record Proof from file storage.
@@ -42,22 +41,24 @@ fn main() {
 
             stdin.write_proof(proof, record_vk.vk.clone());
 
-            // Build the Record Proof input.
-            let record_proof = RecordProof {
-                v_key: v_key_hash,
-                pub_inputs: record_proof.public_values.to_vec(),
-            };
+            // Fetch the KeySpace id and the new key from the recrd proof public inputs.
+            let keyspace_id = record_proof.public_values.as_slice()[..32]
+                .try_into()
+                .expect("invalid record proof public inputs");
 
-            let keyspace_id = keyspace_key(&record_proof.v_key, &record_proof.current_data());
+            let new_key = record_proof.public_values.as_slice()[64..]
+                .try_into()
+                .expect("invalid record proof public inputs");
 
-            // Mutate the tree for the re-computed Keyspace id.
-            let imt_mutate = tree.insert_node(keyspace_id, [3; 32]);
+            // Generate the IMTMutate.
+            let imt_mutate = tree.insert_node(keyspace_id, new_key);
 
-            // Build a transaction to send.
-            Tx {
-                record_proof,
-                imt_mutate,
-            }
+            // Build an Offchain transaction to send.
+            let tx = Tx::offchain(imt_mutate, tx_hash, v_key_hash);
+
+            tx_hash = tx.hash();
+
+            tx
         })
         .collect::<Vec<_>>();
 
@@ -66,11 +67,10 @@ fn main() {
     let inputs = Inputs {
         old_root,
         new_root,
+        new_tx_hash: tx_hash,
+
         txs,
     };
-
-    // Make sure the inputs is valid by fake running our the batcher program.
-    Program::run(&inputs);
 
     // Generate the proof for it.
     stdin.write(&inputs);

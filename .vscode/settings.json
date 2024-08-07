@@ -2,8 +2,7 @@
     "rust-analyzer.linkedProjects": [
         "batcher/Cargo.toml",
         "ecdsa_record/Cargo.toml",
-        "multisig_record/Cargo.toml",
-        "k_lib/Cargo.toml",
+        "lib/Cargo.toml",
         "script/Cargo.toml"
     ],
     "rust-analyzer.check.overrideCommand": [

@@ -1,14 +1,12 @@
-[workspace]
-
 [package]
+name = "batcher"
 version = "0.1.0"
-name = "batcher-program"
 edition = "2021"
 
+
 [dependencies]
-sp1-zkvm = { version = "1.0.1", features = ["verify"] }
-sha2 = "0.10.8"
-k_lib = { path = "../k_lib" }
+lib = { path = "../lib" }
+sp1-zkvm = { version = "1.1.1", features = ["verify"] }
 
 [patch.crates-io]
 tiny-keccak = { git = "https://github.com/sp1-patches/tiny-keccak", branch = "patch-v2.0.2" }
