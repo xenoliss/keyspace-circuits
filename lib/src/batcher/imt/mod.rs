@@ -1,10 +1,10 @@
+use tiny_keccak::{Hasher, Keccak};
+
 mod insert;
 mod update;
 
 pub mod mutate;
 pub mod node;
-
-use tiny_keccak::{Hasher, Keccak};
 
 use node::IMTNode;
 

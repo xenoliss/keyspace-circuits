@@ -1,10 +1,13 @@
-[workspace]
-
 [package]
+name = "ecdsa_record"
 version = "0.1.0"
-name = "ecdsa-record-program"
 edition = "2021"
 
+
 [dependencies]
-sp1-zkvm = "1.0.1"
-k_lib = { path = "../k_lib" }
+lib = { path = "../lib" }
+sp1-zkvm = { version = "1.1.1", features = ["verify"] }
+tiny-keccak = { version = "2.0.2", features = ["keccak"] }
+
+[patch.crates-io]
+tiny-keccak = { git = "https://github.com/sp1-patches/tiny-keccak", branch = "patch-v2.0.2" }

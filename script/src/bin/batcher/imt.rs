@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use tiny_keccak::{Hasher, Keccak};
 
-use k_lib::imt::{mutate::IMTMutate, node::IMTNode};
+use lib::batcher::imt::{mutate::IMTMutate, node::IMTNode};
 
 #[derive(Debug)]
 pub struct Imt {
