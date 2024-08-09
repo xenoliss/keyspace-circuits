@@ -43,6 +43,12 @@ impl OnchainTx {
             ),
         };
 
+        // TODO: Ensure the provided `record_vk_hash` matches with the `current_key`.
+        //
+        // This check is CRITICAL to ensure that the provided `record_vk_hash` is indeed the one
+        // that has control over the KeySpace id. Without this check a malicious user could provide
+        // an arbitrary `record_vk_hash` and update any KeySpace record.
+
         // TODO: Verify the PLONK proof
         true
     }

@@ -1,6 +1,6 @@
 use tiny_keccak::{Hasher, Keccak};
 
-use crate::keyspace_key;
+use crate::keyspace_key_from_storage;
 
 use super::inputs::Inputs;
 
@@ -19,7 +19,7 @@ impl Program {
         let recovered_pub_key = inputs.sig.ecrecover(&msg_hash);
 
         // Recover the `current_key`: keccack(storage_hash, vk_hash).
-        let current_key = keyspace_key(&inputs.vk_hash, &recovered_pub_key);
+        let current_key = keyspace_key_from_storage(&inputs.vk_hash, &recovered_pub_key);
 
         // Ensure the recovered `current_key` matches with the one passed as public input.
         assert_eq!(inputs.current_key, current_key);

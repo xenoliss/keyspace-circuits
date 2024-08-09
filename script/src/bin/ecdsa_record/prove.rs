@@ -3,7 +3,11 @@ use rand::Rng;
 use sp1_sdk::{HashableKey, ProverClient, SP1Stdin, SP1VerifyingKey};
 use tiny_keccak::{Hasher, Keccak};
 
-use lib::ecdsa_record::{inputs::Inputs, k_signature::KSignature};
+use keyspace_script::save_record_proof_to_file;
+use lib::{
+    ecdsa_record::{inputs::Inputs, k_signature::KSignature},
+    keyspace_key_from_storage_hash,
+};
 
 pub const ELF: &[u8] = include_bytes!("../../../../ecdsa_record/elf/riscv32im-succinct-zkvm-elf");
 
@@ -18,7 +22,7 @@ fn main() {
     let (pk, vk) = client.setup(ELF);
 
     for i in 0..10 {
-        let inputs = random_inputs(&vk);
+        let (storage_hash, inputs) = random_inputs(&vk);
 
         // Setup the inputs.
         let mut stdin = SP1Stdin::new();
@@ -35,12 +39,17 @@ fn main() {
         // Verify the proof.
         client.verify(&proof, &vk).expect("failed to verify proof");
 
-        let file = format!("proofs/record_proof_{i}");
-        proof.save(file).expect("failed to save proof");
+        // Serialize the proof and write it to storage.
+        // NOTE: Also save the `storage_hash` as it is needed when building the actual txs.
+        save_record_proof_to_file(
+            &proof,
+            storage_hash,
+            &format!("proofs/record_proof_{i}.json"),
+        );
     }
 }
 
-fn random_inputs(vk: &SP1VerifyingKey) -> Inputs {
+fn random_inputs(vk: &SP1VerifyingKey) -> ([u8; 32], Inputs) {
     let signing_key = SigningKey::random(&mut OsRng);
     let verifying_key = signing_key.verifying_key();
 
@@ -62,16 +71,7 @@ fn random_inputs(vk: &SP1VerifyingKey) -> Inputs {
         storage_hash
     };
 
-    let keyspace_id = {
-        let mut k = Keccak::v256();
-        let mut keyspace_id = [0; 32];
-        k.update(&storage_hash);
-        k.update(&vk_hash);
-        k.finalize(&mut keyspace_id);
-
-        keyspace_id
-    };
-
+    let keyspace_id = keyspace_key_from_storage_hash(&vk_hash, &storage_hash);
     let current_key = keyspace_id;
 
     let mut rng = rand::thread_rng();
@@ -79,14 +79,16 @@ fn random_inputs(vk: &SP1VerifyingKey) -> Inputs {
 
     let sig = sign_update(&signing_key, &keyspace_id, &new_key);
 
-    Inputs {
+    let inputs = Inputs {
         keyspace_id,
         current_key,
         new_key,
 
         sig,
         vk_hash,
-    }
+    };
+
+    (storage_hash, inputs)
 }
 
 fn sign_update(signing_key: &SigningKey, keyspace_id: &[u8; 32], new_key: &[u8; 32]) -> KSignature {

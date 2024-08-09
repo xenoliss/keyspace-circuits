@@ -1,5 +1,6 @@
-use sp1_sdk::{HashableKey, ProverClient, SP1Proof, SP1ProofWithPublicValues, SP1Stdin};
+use sp1_sdk::{HashableKey, ProverClient, SP1Proof, SP1Stdin};
 
+use keyspace_script::load_record_proof_from_file;
 use lib::batcher::{inputs::Inputs, tx::Tx};
 
 pub const ELF: &[u8] = include_bytes!("../../../../batcher/elf/riscv32im-succinct-zkvm-elf");
@@ -30,9 +31,8 @@ fn main() {
     let txs = (0..10)
         .map(|i| {
             // Read the Record Proof from file storage.
-            let file = format!("proofs/record_proof_{i}");
-            let record_proof = SP1ProofWithPublicValues::load(file)
-                .expect("failed to load record proof from file");
+            let (storage_hash, record_proof) =
+                load_record_proof_from_file(&format!("proofs/record_proof_{i}.json"));
 
             let proof = match record_proof.proof {
                 SP1Proof::Compressed(proof) => proof,
@@ -41,7 +41,7 @@ fn main() {
 
             stdin.write_proof(proof, record_vk.vk.clone());
 
-            // Fetch the KeySpace id and the new key from the recrd proof public inputs.
+            // Fetch the KeySpace id and the new key from the record proof public inputs.
             let keyspace_id = record_proof.public_values.as_slice()[..32]
                 .try_into()
                 .expect("invalid record proof public inputs");
@@ -54,7 +54,7 @@ fn main() {
             let imt_mutate = tree.insert_node(keyspace_id, new_key);
 
             // Build an Offchain transaction to send.
-            let tx = Tx::offchain(imt_mutate, tx_hash, v_key_hash);
+            let tx = Tx::offchain(imt_mutate, tx_hash, v_key_hash, storage_hash);
 
             tx_hash = tx.hash();
 
