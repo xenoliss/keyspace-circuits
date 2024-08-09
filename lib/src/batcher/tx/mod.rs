@@ -19,11 +19,13 @@ impl Tx {
         imt_mutate: IMTMutate,
         prev_tx_hash: [u8; 32],
         record_vk_hash: [u8; 32],
+        storage_hash: [u8; 32],
     ) -> Self {
         Self::Offchain(OffchainTx {
             imt_mutate,
             prev_tx_hash,
             record_vk_hash,
+            storage_hash,
         })
     }
 

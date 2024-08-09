@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use tiny_keccak::{Hasher, Keccak};
 
-use crate::batcher::imt::mutate::IMTMutate;
+use crate::{batcher::imt::mutate::IMTMutate, keyspace_key_from_storage_hash};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct OffchainTx {
@@ -12,6 +12,8 @@ pub struct OffchainTx {
     pub prev_tx_hash: [u8; 32],
     /// The record verifier key hash.
     pub record_vk_hash: [u8; 32],
+    /// The storage hash.
+    pub storage_hash: [u8; 32],
 }
 
 pub struct RecordProofArgs {
@@ -45,6 +47,17 @@ impl OffchainTx {
                 update.new_value_hash,
             ),
         };
+
+        // Ensure the provided `record_vk_hash` matches with the `current_key`.
+        //
+        // This check is CRITICAL to ensure that the provided `record_vk_hash` is indeed the one
+        // that has control over the KeySpace id. Without this check a malicious user could provide
+        // an arbitrary `record_vk_hash` and update any KeySpace record.
+        assert_eq!(
+            current_key,
+            keyspace_key_from_storage_hash(&self.record_vk_hash, &self.storage_hash),
+            "record_vk_hash does not match with current_key"
+        );
 
         let mut pub_inputs = [0; 96];
         pub_inputs[..32].copy_from_slice(&keyspace_id);
