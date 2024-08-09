@@ -6,7 +6,10 @@ pub mod onchain;
 use offchain::OffchainTx;
 use onchain::OnchainTx;
 
-use super::imt::mutate::IMTMutate;
+use super::{
+    imt::mutate::IMTMutate,
+    proof::{plonk::PLONKProof, Proof},
+};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Tx {
@@ -15,31 +18,19 @@ pub enum Tx {
 }
 
 impl Tx {
-    pub fn offchain(
-        imt_mutate: IMTMutate,
-        prev_tx_hash: [u8; 32],
-        record_vk_hash: [u8; 32],
-        storage_hash: [u8; 32],
-    ) -> Self {
+    pub fn offchain(imt_mutate: IMTMutate, prev_tx_hash: [u8; 32], proof: Proof) -> Self {
         Self::Offchain(OffchainTx {
             imt_mutate,
             prev_tx_hash,
-            record_vk_hash,
-            storage_hash,
+            proof,
         })
     }
 
-    pub fn onchain(
-        imt_mutate: IMTMutate,
-        prev_tx_hash: [u8; 32],
-        record_vk_hash: [u8; 32],
-        record_proof: Vec<u8>,
-    ) -> Self {
+    pub fn onchain(imt_mutate: IMTMutate, prev_tx_hash: [u8; 32], proof: PLONKProof) -> Self {
         Self::Onchain(OnchainTx {
             imt_mutate,
             prev_tx_hash,
-            record_vk_hash,
-            record_proof,
+            proof,
         })
     }
 

@@ -1,7 +1,7 @@
 use sp1_sdk::{HashableKey, ProverClient, SP1Proof, SP1Stdin};
 
 use keyspace_script::load_record_proof_from_file;
-use lib::batcher::{inputs::Inputs, tx::Tx};
+use lib::batcher::{inputs::Inputs, proof::Proof, tx::Tx};
 
 pub const ELF: &[u8] = include_bytes!("../../../../batcher/elf/riscv32im-succinct-zkvm-elf");
 
@@ -54,7 +54,7 @@ fn main() {
             let imt_mutate = tree.insert_node(keyspace_id, new_key);
 
             // Build an Offchain transaction to send.
-            let tx = Tx::offchain(imt_mutate, tx_hash, v_key_hash, storage_hash);
+            let tx = Tx::offchain(imt_mutate, tx_hash, Proof::sp1(v_key_hash, storage_hash));
 
             tx_hash = tx.hash();
 
