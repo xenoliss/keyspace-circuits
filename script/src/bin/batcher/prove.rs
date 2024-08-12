@@ -1,14 +1,14 @@
+use imt::circuits::imt::Imt;
 use sp1_sdk::{HashableKey, ProverClient, SP1Proof, SP1Stdin};
 
 use keyspace_script::load_record_proof_from_file;
 use lib::batcher::{inputs::Inputs, proof::Proof, tx::Tx};
+use tiny_keccak::Keccak;
 
 pub const ELF: &[u8] = include_bytes!("../../../../batcher/elf/riscv32im-succinct-zkvm-elf");
 
 const ECDSA_RECORD_ELF: &[u8] =
     include_bytes!("../../../../ecdsa_record/elf/riscv32im-succinct-zkvm-elf");
-
-mod imt;
 
 fn main() {
     // Setup the logger.
@@ -21,7 +21,7 @@ fn main() {
     let (batcher_pk, _) = client.setup(ELF);
     let (_, record_vk) = client.setup(ECDSA_RECORD_ELF);
 
-    let mut tree = imt::Imt::new(32);
+    let mut tree = Imt::new(Keccak::v256);
     let old_root = tree.root;
 
     let v_key_hash = record_vk.hash_bytes();

@@ -1,27 +1,24 @@
+use imt::circuits::mutate::IMTMutate;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use crate::{batcher::imt::mutate::IMTMutate, keyspace_key_from_storage_hash};
+use crate::{keyspace_key_from_storage_hash, Hash};
 
-pub type Sp1ProofVerify = fn(&[u32; 8], &[u8; 32]);
+pub type Sp1ProofVerify = fn(&[u32; 8], &Hash);
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SP1Proof {
     /// The record verifier key hash.
-    pub record_vk_hash: [u8; 32],
+    pub record_vk_hash: Hash,
     /// The storage hash.
-    pub storage_hash: [u8; 32],
+    pub storage_hash: Hash,
 }
 
 impl SP1Proof {
-    pub fn commit_to_proof(&self, imt_mutate: &IMTMutate, sp1_verify: Sp1ProofVerify) {
+    pub fn commit_to_proof(&self, imt_mutate: &IMTMutate<Hash, Hash>, sp1_verify: Sp1ProofVerify) {
         let (keyspace_id, current_key, new_key) = match imt_mutate {
-            IMTMutate::Insert(insert) => (insert.node.key, insert.node.key, insert.node.value_hash),
-            IMTMutate::Update(update) => (
-                update.node.key,
-                update.node.value_hash,
-                update.new_value_hash,
-            ),
+            IMTMutate::Insert(insert) => (insert.node.key, insert.node.key, insert.node.value),
+            IMTMutate::Update(update) => (update.node.key, update.node.value, update.new_value),
         };
 
         // Ensure the provided `record_vk_hash` matches with the `current_key`.

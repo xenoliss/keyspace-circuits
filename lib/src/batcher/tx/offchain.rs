@@ -1,26 +1,27 @@
+use imt::circuits::mutate::IMTMutate;
 use serde::{Deserialize, Serialize};
 use tiny_keccak::{Hasher, Keccak};
 
-use crate::batcher::{
-    imt::mutate::IMTMutate,
-    proof::{sp1::Sp1ProofVerify, Proof},
+use crate::{
+    batcher::proof::{sp1::Sp1ProofVerify, Proof},
+    Hash,
 };
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct OffchainTx {
     /// The IMT mutate associated with this transaction.
-    pub imt_mutate: IMTMutate,
-    /// The previous transaction hash (32 bytes).
-    pub prev_tx_hash: [u8; 32],
+    pub imt_mutate: IMTMutate<Hash, Hash>,
+    /// The previous transaction hash.
+    pub prev_tx_hash: Hash,
     /// The record proof.
     pub proof: Proof,
 }
 
 impl OffchainTx {
-    pub fn hash(&self) -> [u8; 32] {
+    pub fn hash(&self) -> Hash {
         let (keyspace_id, new_key) = match &self.imt_mutate {
-            IMTMutate::Insert(insert) => (insert.node.key, insert.node.value_hash),
-            IMTMutate::Update(update) => (update.node.key, update.new_value_hash),
+            IMTMutate::Insert(insert) => (insert.node.key, insert.node.value),
+            IMTMutate::Update(update) => (update.node.key, update.new_value),
         };
 
         let mut k = Keccak::v256();

@@ -1,6 +1,7 @@
+use imt::circuits::mutate::IMTMutate;
 use serde::{Deserialize, Serialize};
 
-use crate::batcher::imt::mutate::IMTMutate;
+use crate::Hash;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct PLONKProof {
@@ -11,14 +12,10 @@ pub struct PLONKProof {
 }
 
 impl PLONKProof {
-    pub fn is_valid_record_proof(&self, imt_mutate: &IMTMutate) -> bool {
+    pub fn is_valid_record_proof(&self, imt_mutate: &IMTMutate<Hash, Hash>) -> bool {
         let (keyspace_id, current_key, new_key) = match imt_mutate {
-            IMTMutate::Insert(insert) => (insert.node.key, insert.node.key, insert.node.value_hash),
-            IMTMutate::Update(update) => (
-                update.node.key,
-                update.node.value_hash,
-                update.new_value_hash,
-            ),
+            IMTMutate::Insert(insert) => (insert.node.key, insert.node.key, insert.node.value),
+            IMTMutate::Update(update) => (update.node.key, update.node.value, update.new_value),
         };
 
         // TODO: Ensure the provided `record_vk_hash` matches with the `current_key`.

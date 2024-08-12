@@ -1,4 +1,7 @@
+use anyhow::Result;
+use imt::circuits::mutate::IMTMutate;
 use serde::{Deserialize, Serialize};
+use tiny_keccak::Keccak;
 
 pub mod offchain;
 pub mod onchain;
@@ -6,10 +9,9 @@ pub mod onchain;
 use offchain::OffchainTx;
 use onchain::OnchainTx;
 
-use super::{
-    imt::mutate::IMTMutate,
-    proof::{plonk::PLONKProof, Proof},
-};
+use crate::Hash;
+
+use super::proof::{plonk::PLONKProof, Proof};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Tx {
@@ -18,7 +20,7 @@ pub enum Tx {
 }
 
 impl Tx {
-    pub fn offchain(imt_mutate: IMTMutate, prev_tx_hash: [u8; 32], proof: Proof) -> Self {
+    pub fn offchain(imt_mutate: IMTMutate<Hash, Hash>, prev_tx_hash: Hash, proof: Proof) -> Self {
         Self::Offchain(OffchainTx {
             imt_mutate,
             prev_tx_hash,
@@ -26,7 +28,11 @@ impl Tx {
         })
     }
 
-    pub fn onchain(imt_mutate: IMTMutate, prev_tx_hash: [u8; 32], proof: PLONKProof) -> Self {
+    pub fn onchain(
+        imt_mutate: IMTMutate<Hash, Hash>,
+        prev_tx_hash: Hash,
+        proof: PLONKProof,
+    ) -> Self {
         Self::Onchain(OnchainTx {
             imt_mutate,
             prev_tx_hash,
@@ -34,17 +40,17 @@ impl Tx {
         })
     }
 
-    pub fn hash(&self) -> [u8; 32] {
+    pub fn hash(&self) -> Hash {
         match self {
             Tx::Offchain(offchain) => offchain.hash(),
             Tx::Onchain(onchain) => onchain.hash(),
         }
     }
 
-    pub fn apply_imt_mutate(&self, old_root: &[u8; 32]) -> [u8; 32] {
+    pub fn verify_imt_mutate(&self, old_root: &Hash) -> Result<Hash> {
         match self {
-            Tx::Offchain(offchain) => offchain.imt_mutate.apply(*old_root),
-            Tx::Onchain(onchain) => onchain.imt_mutate.apply(*old_root),
+            Tx::Offchain(offchain) => offchain.imt_mutate.verify(Keccak::v256, *old_root),
+            Tx::Onchain(onchain) => onchain.imt_mutate.verify(Keccak::v256, *old_root),
         }
     }
 }

@@ -24,8 +24,10 @@ impl Program {
                 }
             };
 
-            // 3. Apply the IMTMutate and update the new root.
-            root = tx.apply_imt_mutate(&root);
+            // 3. Verify the IMTMutate and compute the new root.
+            root = tx
+                .verify_imt_mutate(&root)
+                .expect("failed to verify the IMTMutate");
         }
 
         // Make sure the final root obtained after applying the txs matches with the provided new_root.
