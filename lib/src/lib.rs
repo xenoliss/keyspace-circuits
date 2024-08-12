@@ -5,14 +5,17 @@ pub mod ecdsa_record;
 
 pub type Hash = [u8; 32];
 
-pub fn keyspace_key_from_storage(vk_hash: &Hash, storage: &[u8]) -> Hash {
+pub fn hash_storage(storage: &[u8]) -> Hash {
     // Compute the `storage_hash`: keccack(storage).
     let mut k = Keccak::v256();
     let mut storage_hash = [0; 32];
     k.update(storage);
     k.finalize(&mut storage_hash);
+    storage_hash
+}
 
-    keyspace_key_from_storage_hash(vk_hash, &storage_hash)
+pub fn keyspace_key_from_storage(vk_hash: &Hash, storage: &[u8]) -> Hash {
+    keyspace_key_from_storage_hash(vk_hash, &hash_storage(storage))
 }
 
 pub fn keyspace_key_from_storage_hash(vk_hash: &Hash, storage_hash: &Hash) -> Hash {

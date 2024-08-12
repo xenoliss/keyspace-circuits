@@ -54,3 +54,128 @@ pub fn bytes_to_words_be(bytes: &[u8]) -> Vec<u32> {
         .map(|chunk| u32::from_be_bytes(chunk.try_into().unwrap()))
         .collect::<Vec<_>>()
 }
+
+#[cfg(test)]
+mod tests {
+    use imt::circuits::imt::Imt;
+    use tiny_keccak::Keccak;
+
+    use crate::hash_storage;
+
+    use super::*;
+
+    #[test]
+    #[should_panic(expected = "record_vk_hash does not match with current_key")]
+    fn test_commit_to_proof_insert_invalid_vk_hash() {
+        let mut imt = Imt::new(Keccak::v256);
+
+        // Initital values used to compute the KeySpace id.
+        let record_vk_hash = [16; 32];
+        let storage = [42; 32];
+        let storage_hash = hash_storage(&storage);
+        let keyspace_id = keyspace_key_from_storage_hash(&record_vk_hash, &storage_hash);
+
+        // Insert the new node.
+        let new_storage_hash = [16; 32];
+        let new_key = keyspace_key_from_storage_hash(&record_vk_hash, &new_storage_hash);
+        let insert = imt.insert_node(keyspace_id, new_key);
+
+        // Set the `record_vk_hash` to an arbitrary one that is does not match with the `keyspace_id`.
+        let sut = SP1Proof {
+            record_vk_hash: [0xaa; 32],
+            storage_hash,
+        };
+
+        let sp1_verify: Sp1ProofVerify = |_vk_hash, _public_values_digest| {};
+        sut.commit_to_proof(&insert, sp1_verify);
+    }
+
+    #[test]
+    fn test_commit_to_proof_insert() {
+        let mut imt = Imt::new(Keccak::v256);
+
+        // Initital values used to compute the KeySpace id.
+        let record_vk_hash = [16; 32];
+        let storage = [42; 32];
+        let storage_hash = hash_storage(&storage);
+        let keyspace_id = keyspace_key_from_storage_hash(&record_vk_hash, &storage_hash);
+
+        // Insert the new node.
+        let new_storage_hash = [16; 32];
+        let new_key = keyspace_key_from_storage_hash(&record_vk_hash, &new_storage_hash);
+        let insert = imt.insert_node(keyspace_id, new_key);
+
+        let sut = SP1Proof {
+            record_vk_hash,
+            storage_hash,
+        };
+
+        let sp1_verify: Sp1ProofVerify = |_vk_hash, _public_values_digest| {};
+        sut.commit_to_proof(&insert, sp1_verify);
+    }
+
+    #[test]
+    #[should_panic(expected = "record_vk_hash does not match with current_key")]
+    fn test_commit_to_proof_update_invalid_vk_hash() {
+        let mut imt = Imt::new(Keccak::v256);
+
+        // Initital values used to compute the KeySpace id.
+        let record_vk_hash = [16; 32];
+        let storage = [42; 32];
+        let storage_hash = hash_storage(&storage);
+        let keyspace_id = keyspace_key_from_storage_hash(&record_vk_hash, &storage_hash);
+
+        // Do a 1st insertion.
+        let storage = [16; 32];
+        let old_storage_hash = hash_storage(&storage);
+        let new_key = keyspace_key_from_storage_hash(&record_vk_hash, &storage_hash);
+        imt.insert_node(keyspace_id, new_key);
+
+        // Then perform the update.
+        let storage = [05; 32];
+        let storage_hash = hash_storage(&storage);
+        let new_key = keyspace_key_from_storage_hash(&record_vk_hash, &storage_hash);
+        let update = imt.update_node(keyspace_id, new_key);
+
+        // Set the `record_vk_hash` to an arbitrary one that is does not match with the `current_key`.
+        let sut = SP1Proof {
+            record_vk_hash: [0xaa; 32],
+            storage_hash: old_storage_hash,
+        };
+
+        let sp1_verify: Sp1ProofVerify = |_vk_hash, _public_values_digest| {};
+        sut.commit_to_proof(&update, sp1_verify);
+    }
+
+    #[test]
+    #[should_panic(expected = "record_vk_hash does not match with current_key")]
+    fn test_commit_to_proof_update() {
+        let mut imt = Imt::new(Keccak::v256);
+
+        // Initital values used to compute the KeySpace id.
+        let record_vk_hash = [16; 32];
+        let storage = [42; 32];
+        let storage_hash = hash_storage(&storage);
+        let keyspace_id = keyspace_key_from_storage_hash(&record_vk_hash, &storage_hash);
+
+        // Do a 1st insertion.
+        let storage = [16; 32];
+        let old_storage_hash = hash_storage(&storage);
+        let new_key = keyspace_key_from_storage_hash(&record_vk_hash, &storage_hash);
+        imt.insert_node(keyspace_id, new_key);
+
+        // Then perform the update.
+        let storage = [05; 32];
+        let storage_hash = hash_storage(&storage);
+        let new_key = keyspace_key_from_storage_hash(&record_vk_hash, &storage_hash);
+        let update = imt.update_node(keyspace_id, new_key);
+
+        let sut = SP1Proof {
+            record_vk_hash,
+            storage_hash: old_storage_hash,
+        };
+
+        let sp1_verify: Sp1ProofVerify = |_vk_hash, _public_values_digest| {};
+        sut.commit_to_proof(&update, sp1_verify);
+    }
+}
