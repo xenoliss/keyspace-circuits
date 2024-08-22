@@ -19,9 +19,9 @@ impl Proof {
         })
     }
 
-    pub fn plonk(record_vk_hash: [u8; 32], data: Vec<u8>) -> Self {
+    pub fn plonk(vk: &[u8], data: Vec<u8>) -> Self {
         Self::PLONK(PLONKProof {
-            record_vk_hash,
+            vk: vk.into(),
             data,
         })
     }

@@ -21,7 +21,7 @@ fn main() {
     // Setup the program.
     let (pk, vk) = client.setup(ELF);
 
-    for i in 0..10 {
+    for i in 0..1 {
         let (storage_hash, inputs) = random_inputs(&vk);
 
         // Setup the inputs.
@@ -31,7 +31,8 @@ fn main() {
         // Generate the proof.
         let proof = client
             .prove(&pk, stdin)
-            .compressed()
+            //.compressed()
+            .plonk()
             .run()
             .expect("failed to generate proof");
         println!("Successfully generated proof!");
