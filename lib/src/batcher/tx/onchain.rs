@@ -25,7 +25,7 @@ impl OnchainTx {
         k.update(&self.prev_tx_hash);
         k.update(&keyspace_id);
         k.update(&new_key);
-        k.update(&self.proof.data);
+        k.update(&self.proof.proof);
 
         let mut hash = [0; 32];
         k.finalize(&mut hash);
@@ -56,8 +56,10 @@ mod tests {
             imt_mutate: insert,
             prev_tx_hash: [0xff; 32],
             proof: PLONKProof {
-                record_vk_hash: [0xff; 32],
-                data: vec![1, 2, 3, 4, 5],
+                vk: [0xff; 32].to_vec(),
+                proof: vec![1, 2, 3, 4, 5],
+                vk_hash: "0".to_string(),
+                storage_hash: [0xff; 32],
             },
         };
         let hash = sut.hash();
@@ -66,7 +68,7 @@ mod tests {
         expected_keccak.update(&sut.prev_tx_hash);
         expected_keccak.update(&node_key);
         expected_keccak.update(&node_value);
-        expected_keccak.update(&sut.proof.data);
+        expected_keccak.update(&sut.proof.proof);
         let mut expected_hash = [0u8; 32];
         expected_keccak.finalize(&mut expected_hash);
 
@@ -87,8 +89,10 @@ mod tests {
             imt_mutate: update,
             prev_tx_hash: [0xff; 32],
             proof: PLONKProof {
-                record_vk_hash: [0xff; 32],
-                data: vec![1, 2, 3, 4, 5],
+                vk: [0xff; 32].to_vec(),
+                proof: vec![1, 2, 3, 4, 5],
+                vk_hash: "0".to_string(),
+                storage_hash: [0xff; 32],
             },
         };
         let hash = offchain_tx.hash();
@@ -97,7 +101,7 @@ mod tests {
         expected_keccak.update(&offchain_tx.prev_tx_hash);
         expected_keccak.update(&node_key);
         expected_keccak.update(&node_value);
-        expected_keccak.update(&offchain_tx.proof.data);
+        expected_keccak.update(&offchain_tx.proof.proof);
         let mut expected_hash = [0u8; 32];
         expected_keccak.finalize(&mut expected_hash);
 
