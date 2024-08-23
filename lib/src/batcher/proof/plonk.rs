@@ -32,9 +32,9 @@ impl PLONKProof {
         // This check is CRITICAL to ensure that the provided `record_vk_hash` is indeed the one
         // that has control over the KeySpace id. Without this check a malicious user could provide
         // an arbitrary `record_vk_hash` and update any KeySpace record.
-        let vk_hash = BigUint::from_str_radix(&self.vk_hash, 10).unwrap();
-        let vk_hash_32b: [u8; 32] = vk_hash.to_bytes_be().try_into().unwrap();
-        let keyspace_key = keyspace_key_from_storage_hash(&vk_hash_32b, &self.storage_hash);
+        let vk_hash_num = BigUint::from_str_radix(&self.vk_hash, 10).unwrap();
+        let vk_hash = &vk_hash_num.to_bytes_be().as_slice().try_into().unwrap();
+        let keyspace_key = keyspace_key_from_storage_hash(vk_hash, &self.storage_hash);
         assert_eq!(current_key, keyspace_key);
 
         let mut pub_inputs = [0; 96];
@@ -48,7 +48,7 @@ impl PLONKProof {
             &self.proof,
             &self.vk,
             &[
-                Fr::from(vk_hash),
+                Fr::from(vk_hash_num),
                 Fr::from(BigUint::from_bytes_be(&public_values_digest)),
             ],
             ProvingSystem::Plonk,

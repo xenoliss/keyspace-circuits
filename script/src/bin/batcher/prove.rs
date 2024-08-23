@@ -24,11 +24,10 @@ fn main() {
     let mut tree = Imt::new(Keccak::v256);
     let old_root = tree.root;
 
-    let v_key_hash = record_vk.hash_bytes();
     let mut stdin = SP1Stdin::new();
 
     let mut tx_hash = [0; 32];
-    let txs = (0..10)
+    let txs = (0..1)
         .map(|i| {
             // Read the Record Proof from file storage.
             let (storage_hash, record_proof, plonk_proof) =
@@ -51,9 +50,13 @@ fn main() {
                 SP1Proof::Compressed(proof) => {
                     // SP1 proofs are verified out of band.
                     stdin.write_proof(proof, record_vk.vk.clone());
-                    Tx::offchain(imt_mutate, tx_hash, Proof::sp1(v_key_hash, storage_hash))
+                    Tx::offchain(
+                        imt_mutate,
+                        tx_hash,
+                        Proof::sp1(record_vk.hash_bytes(), storage_hash),
+                    )
                 }
-                SP1Proof::Plonk(proof) => {
+                SP1Proof::Plonk(_proof) => {
                     let verifiable_proof = plonk_proof.unwrap();
                     Tx::offchain(
                         imt_mutate,
