@@ -22,7 +22,8 @@ struct StorageProof {
 pub struct VerifiablePlonkProof {
     pub proof: Vec<u8>,
     pub vk: Vec<u8>,
-    pub vk_hash: String,
+    pub plonk_vk_hash: String,
+    pub zkvm_vk_hash: String,
     pub public_inputs_digest: String,
 }
 
@@ -94,14 +95,14 @@ fn serialize_plonk(proof: &SP1ProofWithPublicValues) -> Option<String> {
         SP1Proof::Plonk(proof) => {
             // Plonk proofs are written to the user's home directory at a predictable path that is reused for each plonk proof. Read that proof, then reserialize it in our own format to write within the record proof file.
             let (vk, vk_hash) = read_plonk_vk();
-            let public_inputs_digest = &proof.public_inputs[1];
             let raw_proof = hex::decode(&proof.raw_proof).unwrap();
 
             let verifiable_proof = VerifiablePlonkProof {
                 proof: raw_proof,
                 vk,
-                vk_hash: BigUint::from_bytes_be(&vk_hash).to_string(),
-                public_inputs_digest: public_inputs_digest.to_string(),
+                plonk_vk_hash: BigUint::from_bytes_be(&vk_hash).to_string(),
+                zkvm_vk_hash: proof.public_inputs[0].to_string(),
+                public_inputs_digest: proof.public_inputs[1].to_string(),
             };
 
             Some(serde_json::to_string(&verifiable_proof).expect("failed to serialize plonk proof"))

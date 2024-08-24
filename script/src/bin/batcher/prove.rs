@@ -64,7 +64,8 @@ fn main() {
                         Proof::plonk(
                             &verifiable_proof.vk,
                             &verifiable_proof.proof,
-                            verifiable_proof.vk_hash,
+                            verifiable_proof.plonk_vk_hash,
+                            verifiable_proof.zkvm_vk_hash,
                             storage_hash,
                         ),
                     )

@@ -19,11 +19,18 @@ impl Proof {
         })
     }
 
-    pub fn plonk(vk: &[u8], proof: &[u8], vk_hash: String, storage_hash: [u8; 32]) -> Self {
+    pub fn plonk(
+        vk: &[u8],
+        proof: &[u8],
+        plonk_vk_hash: String,
+        zkvm_vk_hash: String,
+        storage_hash: [u8; 32],
+    ) -> Self {
         Self::PLONK(PLONKProof {
             vk: vk.into(),
             proof: proof.into(),
-            vk_hash,
+            plonk_vk_hash,
+            zkvm_vk_hash,
             storage_hash,
         })
     }

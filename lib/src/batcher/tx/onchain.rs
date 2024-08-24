@@ -58,7 +58,8 @@ mod tests {
             proof: PLONKProof {
                 vk: [0xff; 32].to_vec(),
                 proof: vec![1, 2, 3, 4, 5],
-                vk_hash: "0".to_string(),
+                plonk_vk_hash: "0".to_string(),
+                zkvm_vk_hash: "0".to_string(),
                 storage_hash: [0xff; 32],
             },
         };
@@ -91,7 +92,8 @@ mod tests {
             proof: PLONKProof {
                 vk: [0xff; 32].to_vec(),
                 proof: vec![1, 2, 3, 4, 5],
-                vk_hash: "0".to_string(),
+                plonk_vk_hash: "0".to_string(),
+                zkvm_vk_hash: "0".to_string(),
                 storage_hash: [0xff; 32],
             },
         };
