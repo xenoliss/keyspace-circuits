@@ -27,7 +27,7 @@ fn main() {
     prove_random_record_as_plonk(&client, &pk, &[0; 32]);
     let (_plonk_vk, plonk_vk_hash) = read_plonk_vk();
 
-    for i in 0..1 {
+    for i in 0..10 {
         let (proof, storage_hash) = prove_random_record_as_plonk(&client, &pk, &plonk_vk_hash);
 
         // Verify the proof.

@@ -27,7 +27,7 @@ fn main() {
     let mut stdin = SP1Stdin::new();
 
     let mut tx_hash = [0; 32];
-    let txs = (0..1)
+    let txs = (0..10)
         .map(|i| {
             // Read the Record Proof from file storage.
             let (storage_hash, record_proof, plonk_proof) =
