@@ -75,9 +75,14 @@ fn main() {
     // Generate the proof for it.
     stdin.write(&inputs);
 
+    let start = std::time::Instant::now();
     client
         .prove(&batcher_pk, stdin)
         .groth16()
         .run()
         .expect("batcher proving failed");
+    println!(
+        "Successfully generated proof! {}",
+        start.elapsed().as_secs_f64()
+    );
 }
