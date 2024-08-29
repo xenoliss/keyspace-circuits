@@ -17,7 +17,7 @@ path = "src/bin/batcher/prove.rs"
 [dependencies]
 imt = { git = "https://github.com/xenoliss/imt-rs" }
 lib = { path = "../lib" }
-sp1-sdk = "1.1.1"
+sp1-sdk = { git = "https://github.com/succinctlabs/sp1.git", rev = "v1.3.0-rc1", features = ["native-gnark"] }
 hex = "0.4.3"
 k256 = "0.13.3"
 tiny-keccak = { version = "2.0.2", features = ["keccak"] }
@@ -27,6 +27,8 @@ serde = { version = "1.0.206", features = ["derive"] }
 serde_json = "1.0.124"
 base64 = "0.22.1"
 
-
 [build-dependencies]
-sp1-helper = "1.1.1"
+sp1-helper = { git = "https://github.com/succinctlabs/sp1.git", rev = "v1.3.0-rc1" }
+
+[features]
+cuda = ["sp1-sdk/cuda"]

@@ -10,7 +10,7 @@ pub const ELF: &[u8] = include_bytes!("../../../../batcher/elf/riscv32im-succinc
 const ECDSA_RECORD_ELF: &[u8] =
     include_bytes!("../../../../ecdsa_record/elf/riscv32im-succinct-zkvm-elf");
 
-fn main() {
+fn benchmark(n: usize) {
     // Setup the logger.
     sp1_sdk::utils::setup_logger();
 
@@ -28,7 +28,7 @@ fn main() {
     let mut stdin = SP1Stdin::new();
 
     let mut tx_hash = [0; 32];
-    let txs = (0..10)
+    let txs = (0..n)
         .map(|i| {
             // Read the Record Proof from file storage.
             let (storage_hash, record_proof) =
@@ -39,7 +39,7 @@ fn main() {
                 _ => panic!("record proof should be compressed to be recursively verified"),
             };
 
-            stdin.write_proof(proof, record_vk.vk.clone());
+            stdin.write_proof(proof.vk, proof.proof, record_vk.vk.clone());
 
             // Fetch the KeySpace id and the new key from the record proof public inputs.
             let keyspace_id = record_proof.public_values.as_slice()[..32]
@@ -74,9 +74,23 @@ fn main() {
 
     // Generate the proof for it.
     stdin.write(&inputs);
+
+    let start = std::time::Instant::now();
     client
         .prove(&batcher_pk, stdin)
-        .plonk()
+        .groth16()
         .run()
         .expect("batcher proving failed");
+    println!(
+        "Successfully generated proof! {}",
+        start.elapsed().as_secs_f64()
+    );
+}
+
+fn main() {
+    let sizes = [1, 1, 2, 5, 10];
+    for size in sizes {
+        println!("Benchmarking with {} txs", size);
+        benchmark(size);
+    }
 }

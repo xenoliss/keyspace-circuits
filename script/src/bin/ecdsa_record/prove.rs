@@ -29,12 +29,16 @@ fn main() {
         stdin.write(&inputs);
 
         // Generate the proof.
+        let start = std::time::Instant::now();
         let proof = client
             .prove(&pk, stdin)
             .compressed()
             .run()
             .expect("failed to generate proof");
-        println!("Successfully generated proof!");
+        println!(
+            "Successfully generated proof! {}",
+            start.elapsed().as_secs_f64()
+        );
 
         // Verify the proof.
         client.verify(&proof, &vk).expect("failed to verify proof");
