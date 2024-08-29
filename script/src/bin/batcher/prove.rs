@@ -10,7 +10,7 @@ pub const ELF: &[u8] = include_bytes!("../../../../batcher/elf/riscv32im-succinc
 const ECDSA_RECORD_ELF: &[u8] =
     include_bytes!("../../../../ecdsa_record/elf/riscv32im-succinct-zkvm-elf");
 
-fn main() {
+fn benchmark(n: usize) {
     // Setup the logger.
     sp1_sdk::utils::setup_logger();
 
@@ -28,7 +28,7 @@ fn main() {
     let mut stdin = SP1Stdin::new();
 
     let mut tx_hash = [0; 32];
-    let txs = (0..10)
+    let txs = (0..n)
         .map(|i| {
             // Read the Record Proof from file storage.
             let (storage_hash, record_proof) =
@@ -85,4 +85,12 @@ fn main() {
         "Successfully generated proof! {}",
         start.elapsed().as_secs_f64()
     );
+}
+
+fn main() {
+    let sizes = [1, 1, 2, 5, 10];
+    for size in sizes {
+        println!("Benchmarking with {} txs", size);
+        benchmark(size);
+    }
 }
