@@ -39,7 +39,7 @@ fn main() {
                 _ => panic!("record proof should be compressed to be recursively verified"),
             };
 
-            stdin.write_proof(proof, record_vk.vk.clone());
+            stdin.write_proof(proof.vk, proof.proof, record_vk.vk.clone());
 
             // Fetch the KeySpace id and the new key from the record proof public inputs.
             let keyspace_id = record_proof.public_values.as_slice()[..32]
@@ -74,9 +74,10 @@ fn main() {
 
     // Generate the proof for it.
     stdin.write(&inputs);
+
     client
         .prove(&batcher_pk, stdin)
-        .plonk()
+        .groth16()
         .run()
         .expect("batcher proving failed");
 }
