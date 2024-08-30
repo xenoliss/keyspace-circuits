@@ -1,9 +1,11 @@
 use k256::{ecdsa::SigningKey, elliptic_curve::rand_core::OsRng};
 use rand::Rng;
-use sp1_sdk::{HashableKey, ProverClient, SP1Stdin, SP1VerifyingKey};
+use sp1_sdk::{
+    HashableKey, ProverClient, SP1ProofWithPublicValues, SP1ProvingKey, SP1Stdin, SP1VerifyingKey,
+};
 use tiny_keccak::{Hasher, Keccak};
 
-use keyspace_script::save_record_proof_to_file;
+use keyspace_script::{read_plonk_vk, save_record_proof_to_file};
 use lib::{
     ecdsa_record::{inputs::Inputs, k_signature::KSignature},
     keyspace_key_from_storage_hash,
@@ -21,20 +23,12 @@ fn main() {
     // Setup the program.
     let (pk, vk) = client.setup(ELF);
 
+    // We don't know the verifying key for the plonk wrapper until we generate one and read it from SP1's scratch directory.
+    prove_random_record_as_plonk(&client, &pk, &[0; 32]);
+    let (_plonk_vk, plonk_vk_hash) = read_plonk_vk();
+
     for i in 0..10 {
-        let (storage_hash, inputs) = random_inputs(&vk);
-
-        // Setup the inputs.
-        let mut stdin = SP1Stdin::new();
-        stdin.write(&inputs);
-
-        // Generate the proof.
-        let proof = client
-            .prove(&pk, stdin)
-            .compressed()
-            .run()
-            .expect("failed to generate proof");
-        println!("Successfully generated proof!");
+        let (proof, storage_hash) = prove_random_record_as_plonk(&client, &pk, &plonk_vk_hash);
 
         // Verify the proof.
         client.verify(&proof, &vk).expect("failed to verify proof");
@@ -49,11 +43,50 @@ fn main() {
     }
 }
 
-fn random_inputs(vk: &SP1VerifyingKey) -> ([u8; 32], Inputs) {
+fn prove_random_record_as_plonk(
+    client: &ProverClient,
+    pk: &SP1ProvingKey,
+    vk_hash: &[u8; 32],
+) -> (SP1ProofWithPublicValues, [u8; 32]) {
+    let (storage_hash, inputs) = random_inputs(vk_hash);
+
+    // Setup the inputs.
+    let mut stdin = SP1Stdin::new();
+    stdin.write(&inputs);
+
+    // Generate the proof.
+    let proof = client
+        .prove(&pk, stdin)
+        .plonk()
+        .run()
+        .expect("failed to generate proof");
+    (proof, storage_hash)
+}
+
+fn prove_random_record_as_sp1(
+    client: ProverClient,
+    pk: &SP1ProvingKey,
+    vk: &SP1VerifyingKey,
+) -> (SP1ProofWithPublicValues, [u8; 32]) {
+    let (storage_hash, inputs) = random_inputs(&vk.hash_bytes());
+
+    // Setup the inputs.
+    let mut stdin = SP1Stdin::new();
+    stdin.write(&inputs);
+
+    // Generate the proof.
+    let proof = client
+        .prove(&pk, stdin)
+        .compressed()
+        .run()
+        .expect("failed to generate proof");
+    (proof, storage_hash)
+}
+
+fn random_inputs(vk_hash: &[u8; 32]) -> ([u8; 32], Inputs) {
     let signing_key = SigningKey::random(&mut OsRng);
     let verifying_key = signing_key.verifying_key();
 
-    let vk_hash = vk.hash_bytes();
     let storage_hash = {
         let pk = verifying_key.to_encoded_point(false);
         let x = pk.x().unwrap();
@@ -85,7 +118,7 @@ fn random_inputs(vk: &SP1VerifyingKey) -> ([u8; 32], Inputs) {
         new_key,
 
         sig,
-        vk_hash,
+        vk_hash: *vk_hash,
     };
 
     (storage_hash, inputs)

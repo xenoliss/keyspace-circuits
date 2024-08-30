@@ -24,22 +24,14 @@ fn main() {
     let mut tree = Imt::new(Keccak::v256);
     let old_root = tree.root;
 
-    let v_key_hash = record_vk.hash_bytes();
     let mut stdin = SP1Stdin::new();
 
     let mut tx_hash = [0; 32];
     let txs = (0..10)
         .map(|i| {
             // Read the Record Proof from file storage.
-            let (storage_hash, record_proof) =
+            let (storage_hash, record_proof, plonk_proof) =
                 load_record_proof_from_file(&format!("proofs/record_proof_{i}.json"));
-
-            let proof = match record_proof.proof {
-                SP1Proof::Compressed(proof) => proof,
-                _ => panic!("record proof should be compressed to be recursively verified"),
-            };
-
-            stdin.write_proof(proof, record_vk.vk.clone());
 
             // Fetch the KeySpace id and the new key from the record proof public inputs.
             let keyspace_id = record_proof.public_values.as_slice()[..32]
@@ -54,7 +46,32 @@ fn main() {
             let imt_mutate = tree.insert_node(keyspace_id, new_key);
 
             // Build an Offchain transaction to send.
-            let tx = Tx::offchain(imt_mutate, tx_hash, Proof::sp1(v_key_hash, storage_hash));
+            let tx = match record_proof.proof {
+                SP1Proof::Compressed(proof) => {
+                    // SP1 proofs are verified out of band.
+                    stdin.write_proof(proof, record_vk.vk.clone());
+                    Tx::offchain(
+                        imt_mutate,
+                        tx_hash,
+                        Proof::sp1(record_vk.hash_bytes(), storage_hash),
+                    )
+                }
+                SP1Proof::Plonk(_proof) => {
+                    let verifiable_proof = plonk_proof.unwrap();
+                    Tx::offchain(
+                        imt_mutate,
+                        tx_hash,
+                        Proof::plonk(
+                            &verifiable_proof.vk,
+                            &verifiable_proof.proof,
+                            verifiable_proof.plonk_vk_hash,
+                            verifiable_proof.zkvm_vk_hash,
+                            storage_hash,
+                        ),
+                    )
+                }
+                _ => panic!("record proof should be compressed to be recursively verified"),
+            };
 
             tx_hash = tx.hash();
 
