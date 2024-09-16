@@ -24,8 +24,8 @@ fn main() {
     let (pk, vk) = client.setup(ELF);
 
     // We don't know the verifying key for the plonk wrapper until we generate one and read it from SP1's scratch directory.
-    prove_random_record_as_plonk(&client, &pk, &[0; 32]);
     let (_plonk_vk, plonk_vk_hash) = read_plonk_vk();
+    prove_random_record_as_plonk(&client, &pk, &[0; 32]);
 
     for i in 0..10 {
         let (proof, storage_hash) = prove_random_record_as_plonk(&client, &pk, &plonk_vk_hash);

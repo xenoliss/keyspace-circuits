@@ -18,7 +18,7 @@ fn main() {
     let client = ProverClient::new();
 
     // Setup the proving and verifying keys.
-    let (batcher_pk, _) = client.setup(ELF);
+    let (batcher_pk, batcher_vk) = client.setup(ELF);
     let (_, record_vk) = client.setup(ECDSA_RECORD_ELF);
 
     let mut tree = Imt::new(Keccak::v256);
@@ -91,9 +91,22 @@ fn main() {
 
     // Generate the proof for it.
     stdin.write(&inputs);
-    client
+    let proof = client
         .prove(&batcher_pk, stdin)
-        .plonk()
+        .groth16()
         .run()
         .expect("batcher proving failed");
+
+    println!(
+        "Batcher Verification Key: {}",
+        batcher_vk.bytes32().to_string()
+    );
+    println!(
+        "Batcher Public Values: {}",
+        format!("0x{}", hex::encode(proof.public_values.as_slice()))
+    );
+    println!(
+        "Batcher Public Values Digest: {}",
+        hex::encode(proof.public_values.hash())
+    );
 }

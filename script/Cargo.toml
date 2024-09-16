@@ -17,7 +17,7 @@ path = "src/bin/batcher/prove.rs"
 [dependencies]
 imt = { git = "https://github.com/xenoliss/imt-rs" }
 lib = { path = "../lib" }
-sp1-sdk = "1.1.1"
+sp1-sdk = "2.0.0"
 hex = "0.4.3"
 k256 = "0.13.3"
 tiny-keccak = { version = "2.0.2", features = ["keccak"] }
@@ -31,4 +31,4 @@ sha2 = "0.10.8"
 
 
 [build-dependencies]
-sp1-helper = "1.1.1"
+sp1-helper = "2.0.0"
