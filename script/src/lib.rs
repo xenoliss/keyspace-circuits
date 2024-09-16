@@ -73,17 +73,10 @@ pub fn read_plonk_vk() -> (Vec<u8>, [u8; 32]) {
     let circuits_dir = PathBuf::from(std::env::var("HOME").unwrap())
         .join(".sp1")
         .join("circuits")
-        .join("plonk_bn254");
+        .join("v2.0.0");
 
-    let vk_dir_entry = std::fs::read_dir(circuits_dir)
-        .expect("Failed to read circuits directory")
-        .next()
-        .expect("No directories found in circuits directory")
-        .unwrap()
-        .path();
-
-    let vk_bin_path = vk_dir_entry.join("vk.bin");
-
+    let vk_bin_path = circuits_dir.join("plonk_vk.bin");
+    println!("{}", vk_bin_path.display());
     let vk = std::fs::read(vk_bin_path).unwrap();
     let vk_hash: [u8; 32] = Sha256::digest(&vk).into();
     (vk, vk_hash)
